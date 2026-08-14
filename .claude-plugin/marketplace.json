@@ -23,6 +23,16 @@
       "name": "troubleshoot",
       "source": "./troubleshoot",
       "description": "Diagnose a mountOS deployment that is failing or behaving wrongly: what evidence to gather in what order, which checks prove nothing, and the failure modes that report healthy while broken."
+    },
+    {
+      "name": "conformance",
+      "source": "./conformance",
+      "description": "Run filesystem conformance and data-integrity suites (pjdfstest, LTP, fsx) against a mounted mountOS volume on Linux, and interpret the results."
+    },
+    {
+      "name": "smallfiles",
+      "source": "./smallfiles",
+      "description": "Measure small-file workload speed (git clone, npm install) on a mounted mountOS volume. Speed, not correctness; use the conformance skill for verdicts."
     }
   ]
 }

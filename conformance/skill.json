@@ -1,0 +1,23 @@
+{
+  "name": "conformance",
+  "version": "1.0.0",
+  "description": "Run filesystem conformance and data-integrity suites (pjdfstest, LTP, fsx) against a mounted mountOS volume on Linux, and interpret the results.",
+  "license": "Apache-2.0",
+  "homepage": "https://mountos.io",
+  "repository": "https://github.com/mountos-io/skills",
+  "entry": "SKILL.md",
+  "references": [],
+  "scripts": [
+    "setup.sh",
+    "run.sh"
+  ],
+  "update": {
+    "version_url": "https://raw.githubusercontent.com/mountos-io/skills/main/conformance/VERSION",
+    "manifest_url": "https://raw.githubusercontent.com/mountos-io/skills/main/conformance/skill.json",
+    "changelog_url": "https://raw.githubusercontent.com/mountos-io/skills/main/conformance/CHANGELOG.md"
+  },
+  "compatibility": {
+    "mountos_series": "1.7.x",
+    "note": "The skill loads current documentation from https://mountos.io on every use. This field records the release series the suites were exercised against."
+  }
+}

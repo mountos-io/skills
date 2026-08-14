@@ -1,0 +1,23 @@
+{
+  "name": "conformance",
+  "displayName": "mountOS conformance",
+  "version": "1.0.0",
+  "description": "Run filesystem conformance and data-integrity suites (pjdfstest, LTP, fsx) against a mounted mountOS volume on Linux, and interpret the results.",
+  "author": {
+    "name": "mountOS",
+    "url": "https://mountos.io"
+  },
+  "homepage": "https://mountos.io/docs/ai",
+  "repository": "https://github.com/mountos-io/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "mountos",
+    "storage",
+    "testing",
+    "posix",
+    "pjdfstest",
+    "ltp",
+    "fsx",
+    "conformance"
+  ]
+}

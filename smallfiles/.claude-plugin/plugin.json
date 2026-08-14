@@ -1,0 +1,22 @@
+{
+  "name": "smallfiles",
+  "displayName": "mountOS small-file speed",
+  "version": "1.0.0",
+  "description": "Measure small-file workload speed (git clone, npm install) on a mounted mountOS volume. Speed, not correctness; use the conformance skill for verdicts.",
+  "author": {
+    "name": "mountOS",
+    "url": "https://mountos.io"
+  },
+  "homepage": "https://mountos.io/docs/ai",
+  "repository": "https://github.com/mountos-io/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "mountos",
+    "storage",
+    "performance",
+    "benchmark",
+    "npm",
+    "git",
+    "latency"
+  ]
+}
