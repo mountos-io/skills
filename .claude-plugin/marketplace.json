@@ -32,7 +32,7 @@
     {
       "name": "smallfiles",
       "source": "./smallfiles",
-      "description": "Measure small-file workload speed (git clone, npm install) on a mounted mountOS volume. Speed, not correctness; use the conformance skill for verdicts."
+      "description": "Measure small-file workload speed (git clone, npm install) on a mounted mountOS volume, and compare it against a same-locality baseline."
     }
   ]
 }

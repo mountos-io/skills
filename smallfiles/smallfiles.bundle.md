@@ -16,9 +16,9 @@ is most likely to disappoint. A dependency install or a source checkout is exact
 that shape, and it is a far better predictor of how a deployment will feel than a
 sequential throughput number.
 
-**This measures speed, not correctness.** There is no pass or fail. For correctness
-use the `conformance` skill at https://github.com/mountos-io/skills, which runs
-pjdfstest, LTP, and fsx and does have verdicts.
+This is a measurement. Read it against a baseline: the same workload on local disk
+on the same host, or an earlier run of the same deployment. To verify behaviour
+instead, use the `conformance` skill at https://github.com/mountos-io/skills.
 
 ## Step 0: load the live context first
 
@@ -42,16 +42,14 @@ sudo NPM_PACKAGES="react react-dom vite" ./run.sh
 The script reports wallclock and file count per phase: a shallow clone, an install
 inside that repository, and a fresh install in an empty project.
 
-## Mount configuration matters more here than in correctness testing
+## Measure the configuration the operator runs
 
-Correctness suites deliberately run with every cache disabled, so the kernel cannot
-answer from stale attributes and hide a bug. **Do not do that here.** A
-cache-disabled mount measures the worst case and tells you nothing about how the
-deployment performs in normal use.
+Use the mount flags and cache settings the deployment actually uses in normal
+operation. That is the configuration whose speed they care about, and it is the one
+a result should describe.
 
-Measure with the caches the operator actually runs. If you are comparing two
-deployments, or a deployment against a local disk, confirm both sides use the same
-cache settings before believing any ratio between them.
+When comparing two deployments, or a deployment against local disk, confirm both
+sides use the same cache settings before believing any ratio between them.
 
 ## What makes a comparison meaningless
 
@@ -68,13 +66,20 @@ Four things, each of which silently invalidates a run:
 
 ## Reading the result
 
-There is no threshold to pass. What to look at:
+Three comparisons carry the signal:
 
 - **Time per file, not total time.** A clone of 3,000 files and one of 300 are not
   comparable; divide.
-- **Clone against install.** A clone is mostly writes in one pass. An install is
-  writes plus many small reads, metadata lookups, and rename churn, so it is the
-  harsher of the two and usually the one that exposes per-operation latency.
+- **The two installs against each other, not against the clone.** The clone phase
+  includes downloading the repository from the network, which is not filesystem
+  work; on a small repository that download dominates and the resulting rate says
+  little about the mount. The two npm phases are the comparable pair.
+- **Whether the rate holds as the tree grows.** The in-repo install pulls a full
+  dev-dependency tree and the fresh one pulls only runtime deps, so the first is
+  several times larger. If files-per-second is roughly equal across both, cost is
+  scaling linearly with file count. If the larger tree is markedly slower per file,
+  something is degrading with directory size or depth, which is the more
+  interesting finding.
 - **The same workload on local disk on the same host.** This is the single most
   useful comparison, because it isolates the filesystem from the machine.
 

@@ -3,9 +3,8 @@
 # npm install, which is the shape most likely to expose per-file overhead on a
 # network filesystem.
 #
-# This is a PERFORMANCE probe, not a correctness suite. There is no pass or fail.
-# Compare against the same workload on a local filesystem on the same host, and
-# against your own earlier runs.
+# A timing probe. Read the result against a baseline: the same workload on a local
+# filesystem on the same host, or an earlier run of the same deployment.
 #
 #   sudo ./smallfiles.sh
 #   sudo GIT_REPO=https://github.com/you/yours.git ./smallfiles.sh
@@ -51,8 +50,9 @@ say "git repo:  $GIT_REPO"
 say "npm pkgs:  $NPM_PACKAGES"
 echo | tee -a "$LOG"
 
-timed "git clone" "$WORK/git" -- git clone --depth 1 "$GIT_REPO" repo
+timed "git clone" "$WORK/git" -- git clone --quiet --depth 1 "$GIT_REPO" repo
 say "  entries after clone: $(count "$WORK/git/repo")"
+say "  (clone time includes the network fetch; compare the two npm phases, not this one)"
 
 if [ -f "$WORK/git/repo/package.json" ]; then
   timed "npm install (in repo)" "$WORK/git/repo" -- npm install --no-audit --no-fund --loglevel=error
