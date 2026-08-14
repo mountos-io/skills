@@ -55,6 +55,9 @@ POOL_FILES = 50          # per dir; 2000 files total
 POOL_SIZES = [1024, 2048, 4096, 8192, 16384, 32768, 65536]
 DEEP_CHAINS = 8
 DEEP_DEPTH = 20
+# Grace period for workers to notice the stop flag and exit. Shared across all
+# threads, so a hung mount costs this once rather than once per thread.
+JOIN_GRACE_S = 60
 SENTINELS = 100
 
 SPARSE_LEN = 8 * 1024 * 1024
@@ -924,9 +927,15 @@ def cmd_run(args):
     # in-flight iteration, negligible against thousands of samples.
     window = time.perf_counter() - t0
     ctx.stop.set()
+    # One SHARED deadline, not 60s per thread. On a genuinely hung mount every
+    # thread is stuck in an uninterruptible syscall, and a per-thread timeout would
+    # make shutdown cost 60s x thread count (18 minutes at the default mix) before
+    # anything is reported. The threads are daemons, so whatever is still wedged
+    # cannot hold the process open past this.
+    join_deadline = time.perf_counter() + JOIN_GRACE_S
     stuck = []
     for t in threads:
-        t.join(timeout=60)
+        t.join(timeout=max(0.0, join_deadline - time.perf_counter()))
         if t.is_alive():
             stuck.append(t.name)
 

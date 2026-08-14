@@ -130,6 +130,13 @@ Two properties make this worth more than a throughput number:
   the mix found no data or metadata error while it measured. Any nonzero counter is
   a defect, and matters more than any latency number in the same run.
 
+**It refuses a non-FUSE target.** mountOS is always FUSE, so a non-FUSE path means
+the mount failed and the run is about to measure the underlying directory instead.
+That failure is silent and convincing: writes to an unmounted mount point succeed
+against local disk and look entirely healthy. For a deliberate local-disk baseline,
+set `ALLOW_NON_FUSE=1`, which says so in the output so the result cannot later be
+mistaken for a mountOS measurement.
+
 **No network fetch inside the timed section.** The corpus is generated locally by a
 `prepare` phase that runs untimed, and it is manifest-guarded, so a seed or shape
 mismatch refuses to run rather than silently comparing two different tests.
