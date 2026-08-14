@@ -1,0 +1,18 @@
+{
+  "name": "mountos",
+  "owner": {
+    "name": "mountOS",
+    "url": "https://mountos.io"
+  },
+  "metadata": {
+    "description": "Agent skills for running mountOS, self-hosted POSIX-compatible distributed storage.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "deploy",
+      "source": "./deploy",
+      "description": "Deploy, verify, operate, and integrate a self-hosted mountOS storage system. Architecture diagrams, the ordered bring-up, per-stage verification, integration with an existing user base, and the failure modes that report healthy while the system is broken."
+    }
+  ]
+}

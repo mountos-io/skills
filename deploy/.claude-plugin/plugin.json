@@ -1,0 +1,22 @@
+{
+  "name": "deploy",
+  "displayName": "mountOS deploy",
+  "version": "1.0.0",
+  "description": "Deploy, verify, operate, and integrate a self-hosted mountOS storage system, and mount its volumes.",
+  "author": {
+    "name": "mountOS",
+    "url": "https://mountos.io"
+  },
+  "homepage": "https://mountos.io/docs/ai",
+  "repository": "https://github.com/mountos-io/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "mountos",
+    "storage",
+    "filesystem",
+    "deployment",
+    "terraform",
+    "s3",
+    "posix"
+  ]
+}
