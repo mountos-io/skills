@@ -12,7 +12,7 @@ Each skill is one directory holding a `SKILL.md` and its references.
 | [`integrate`](integrate/) | Application developer | Add mountOS under a product that already has customers. Mapping an existing user base, credential-issuing shapes, the reconciliation loop, and picking a data surface per workload. |
 | [`troubleshoot`](troubleshoot/) | On call | Diagnose a deployment that is failing. What evidence to gather in what order, which checks prove nothing, and the healthy-but-broken catalogue. |
 | [`conformance`](conformance/) | Correctness testing | Run pjdfstest, LTP, and fsx against a mount, natively on Linux. Setup scripts, the mount flags that decide whether it passes, and which reported failures are configuration rather than defects. |
-| [`smallfiles`](smallfiles/) | Small files test | Time a git clone and an npm install against a mount, and compare against a same-locality baseline. |
+| [`performance`](performance/) | Measurement | Metadata rates with mdtest across directory shapes, and small-file workload timing. Read against a baseline; nothing here has a pass or fail. |
 
 The skills are deliberately thin on reference detail. On every use they load the current
 documentation from https://mountos.io, which is generated from the mountOS source, so
@@ -54,7 +54,7 @@ this up on their own once the repository is in the workspace, because
 **Claude Code**, global or per project:
 
 ```bash
-for s in deploy integrate troubleshoot conformance smallfiles; do
+for s in deploy integrate troubleshoot conformance performance; do
   ln -s ~/.mountos-skills/$s ~/.claude/skills/$s
 done
 ```

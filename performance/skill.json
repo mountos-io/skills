@@ -1,0 +1,24 @@
+{
+  "name": "performance",
+  "version": "1.0.0",
+  "description": "Measure mountOS performance against a baseline on a mounted volume: metadata operation rates with mdtest across directory shapes, and small-file workload timing.",
+  "license": "Apache-2.0",
+  "homepage": "https://mountos.io",
+  "repository": "https://github.com/mountos-io/skills",
+  "entry": "SKILL.md",
+  "references": [],
+  "scripts": [
+    "setup.sh",
+    "mdtest.sh",
+    "smallfiles.sh"
+  ],
+  "update": {
+    "version_url": "https://raw.githubusercontent.com/mountos-io/skills/main/performance/VERSION",
+    "manifest_url": "https://raw.githubusercontent.com/mountos-io/skills/main/performance/skill.json",
+    "changelog_url": "https://raw.githubusercontent.com/mountos-io/skills/main/performance/CHANGELOG.md"
+  },
+  "compatibility": {
+    "mountos_series": "1.7.x",
+    "note": "Loads current documentation from https://mountos.io on every use."
+  }
+}

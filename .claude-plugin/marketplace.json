@@ -30,9 +30,9 @@
       "description": "Run filesystem conformance and data-integrity suites (pjdfstest, LTP, fsx) against a mounted mountOS volume on Linux, and interpret the results."
     },
     {
-      "name": "smallfiles",
-      "source": "./smallfiles",
-      "description": "Measure small-file workload speed (git clone, npm install) on a mounted mountOS volume, and compare it against a same-locality baseline."
+      "name": "performance",
+      "source": "./performance",
+      "description": "Measure mountOS performance against a baseline on a mounted volume: metadata operation rates with mdtest across directory shapes, and small-file workload timing."
     }
   ]
 }

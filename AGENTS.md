@@ -11,7 +11,7 @@ If you are an AI agent working on mountOS, read the skill that matches the job a
 | Add mountOS under a product that already has users | **[integrate/SKILL.md](integrate/SKILL.md)** |
 | Diagnose a deployment that is failing | **[troubleshoot/SKILL.md](troubleshoot/SKILL.md)** |
 | Prove a deployment behaves like a filesystem | **[conformance/SKILL.md](conformance/SKILL.md)** |
-| Measure small-file speed on a mount | **[smallfiles/SKILL.md](smallfiles/SKILL.md)** |
+| Measure metadata rates or workload speed | **[performance/SKILL.md](performance/SKILL.md)** |
 
 If you cannot read a directory or follow relative links, read that skill's single-file bundle
 instead, for example **[deploy/deploy.bundle.md](deploy/deploy.bundle.md)**, which contains

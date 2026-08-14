@@ -100,7 +100,7 @@ headers and will not build standalone.
 ## Running
 
 ```bash
-sudo ./run.sh              # all three, serialised
+sudo ./run.sh              # pjdfstest, fsx, LTP, serialised
 sudo ./run.sh pjdfstest    # just one
 ```
 
@@ -156,7 +156,9 @@ with caches enabled? A failure that only appears with caches off is a coherence
 question; one that appears either way is a correctness question.
 
 For deeper diagnosis, use the `troubleshoot` skill at
-https://github.com/mountos-io/skills.
+https://github.com/mountos-io/skills. For metadata rates and workload timing, which
+report numbers rather than verdicts, use the `performance` skill in the same
+repository.
 
 ## Measured runtimes
 

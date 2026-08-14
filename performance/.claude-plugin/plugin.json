@@ -1,8 +1,8 @@
 {
-  "name": "smallfiles",
-  "displayName": "mountOS small-file speed",
+  "name": "performance",
+  "displayName": "mountOS performance",
   "version": "1.0.0",
-  "description": "Measure small-file workload speed (git clone, npm install) on a mounted mountOS volume, and compare it against a same-locality baseline.",
+  "description": "Measure mountOS performance against a baseline on a mounted volume: metadata operation rates with mdtest across directory shapes, and small-file workload timing.",
   "author": {
     "name": "mountOS",
     "url": "https://mountos.io"
@@ -15,8 +15,8 @@
     "storage",
     "performance",
     "benchmark",
-    "npm",
-    "git",
+    "mdtest",
+    "metadata",
     "latency"
   ]
 }

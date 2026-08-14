@@ -27,7 +27,7 @@ if have apt-get; then
     fuse3 libfuse3-dev acl libacl1-dev attr libattr1-dev \
     perl libtap-harness-archive-perl \
     libaio-dev libcap-dev libnuma-dev uuid-dev \
-    xfslibs-dev libgdbm-dev python3 >/dev/null
+    xfslibs-dev libgdbm-dev python3 wget >/dev/null
 elif have dnf; then
   dnf -y group install "Development Tools" >/dev/null 2>&1 || \
     dnf -y groupinstall "Development Tools" >/dev/null 2>&1
@@ -39,7 +39,7 @@ elif have dnf; then
     fuse3 fuse3-devel acl libacl-devel attr libattr-devel \
     perl perl-Test-Harness perl-ExtUtils-MakeMaker \
     libaio-devel libcap-devel numactl-devel libuuid-devel \
-    xfsprogs-devel e2fsprogs-devel gettext-devel python3 >/dev/null
+    xfsprogs-devel e2fsprogs-devel gettext-devel python3 wget >/dev/null
 else
   echo "unsupported package manager; install the build deps by hand"; exit 1
 fi
