@@ -456,9 +456,23 @@ is unverified at runtime, which is a different claim from the fixes being wrong.
 Work through this before and during the first real apply. Each item is a place where the
 provider differs enough that a correct AWS pattern can still fail.
 
-1. **Instance metadata.** The public and private address lookup uses a provider-specific
-   metadata endpoint and header. Confirm the startup script reads the right leaves and that
-   a missing value causes a hard exit rather than an empty variable that flows onward.
+1. **Instance metadata does not always carry the public address.** The private one is
+   reliable everywhere. The public one is not. On **Azure** the instance-metadata field for
+   a VM's own public IPv4 only ever served Basic-SKU addresses, and Basic SKU reached end of
+   life in September 2025, so on any current deployment it is empty. The Load Balancer
+   Metadata API does report an instance's own address, but returns 404 for a VM that is not
+   behind a standard load balancer. A machine with a static public IP and no load balancer
+   therefore has no metadata path to its own public address at all.
+
+   Do not paper over this with a retry loop; it will time out on every boot forever. Supply
+   the public address instead, through the variable that sets **only** the public role, so
+   the private one is still auto-detected. Where the address is known when you provision
+   (a static IP attached to the interface) template it in. Where it is allocated per
+   instance from a pool, the instance has to ask the cloud's own API for it, using an
+   instance identity rather than a stored credential.
+
+   Whatever path you use, a missing value must cause a hard exit rather than an empty
+   variable that flows onward into registration.
 2. **Address attachment timing.** A static or reserved public address may attach slightly
    after the machine boots. A startup script that reads the address immediately can capture
    an ephemeral one. Poll until the expected address appears, and fail hard on timeout.
@@ -712,6 +726,11 @@ private-address machinery looks broken when it is not.
 Leave it unset so the service auto-detects the public and the private address separately
 from instance metadata. The one exception is a host whose only reachable address is private,
 where pinning the private address is correct.
+
+When only the **public** half needs supplying, and that is the normal case on Azure because
+its metadata does not report a VM's own public IP, use the variable that sets the public role
+alone. The private address then still comes from metadata and the two roles stay distinct.
+Reaching for the both-roles variable there reintroduces exactly the failure above.
 
 Symptom: peers time out with no error text that names addressing. A dial to the same port on
 the private address connects instantly.

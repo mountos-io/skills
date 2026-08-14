@@ -21,6 +21,11 @@ Leave it unset so the service auto-detects the public and the private address se
 from instance metadata. The one exception is a host whose only reachable address is private,
 where pinning the private address is correct.
 
+When only the **public** half needs supplying, and that is the normal case on Azure because
+its metadata does not report a VM's own public IP, use the variable that sets the public role
+alone. The private address then still comes from metadata and the two roles stay distinct.
+Reaching for the both-roles variable there reintroduces exactly the failure above.
+
 Symptom: peers time out with no error text that names addressing. A dial to the same port on
 the private address connects instantly.
 
