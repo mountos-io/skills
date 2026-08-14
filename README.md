@@ -10,9 +10,9 @@ Each skill is one directory holding a `SKILL.md` and its references.
 | --- | --- | --- |
 | [`deploy`](deploy/) | Operator | Stand up, verify, and operate a deployment. Architecture and component interaction, the ordered bring-up, per-stage verification, and the failure modes that report healthy while the system is broken. |
 | [`integrate`](integrate/) | Application developer | Add mountOS under a product that already has customers. Mapping an existing user base, credential-issuing shapes, the reconciliation loop, and picking a data surface per workload. |
-| [`troubleshoot`](troubleshoot/) | Whoever is on call | Diagnose a deployment that is failing. What evidence to gather in what order, which checks prove nothing, and the healthy-but-broken catalogue. |
-| [`conformance`](conformance/) | Whoever must prove it works | Run pjdfstest, LTP, and fsx against a mount, natively on Linux. Setup scripts, the mount flags that decide whether it passes, and which reported failures are configuration rather than defects. |
-| [`smallfiles`](smallfiles/) | Whoever asks "is it fast enough" | Time a git clone and an npm install against a mount, and compare against a same-locality baseline. |
+| [`troubleshoot`](troubleshoot/) | On call | Diagnose a deployment that is failing. What evidence to gather in what order, which checks prove nothing, and the healthy-but-broken catalogue. |
+| [`conformance`](conformance/) | Correctness testing | Run pjdfstest, LTP, and fsx against a mount, natively on Linux. Setup scripts, the mount flags that decide whether it passes, and which reported failures are configuration rather than defects. |
+| [`smallfiles`](smallfiles/) | Small files test | Time a git clone and an npm install against a mount, and compare against a same-locality baseline. |
 
 The skills are deliberately thin on reference detail. On every use they load the current
 documentation from https://mountos.io, which is generated from the mountOS source, so
