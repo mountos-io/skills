@@ -1,6 +1,6 @@
 ---
 name: deploy
-description: Deploy, verify, operate, and integrate a self-hosted mountOS storage system, and mount its volumes. Use for any task that mentions mountOS, appserv/dataserv/gcserv/blockserv, a mountOS hub, region, cluster, storage, volume, or access key; for standing up mountOS on AWS, GCP, or Azure with the mountos-io/deployment Terraform package; for explaining or diagramming the mountOS architecture and how its components interact; for adding mountOS under an existing product and mapping an existing user base onto mountOS accounts, users, volumes, and keys with the Admin SDK; for mounting a mountOS volume on Linux, macOS, or Windows, including /etc/fstab and the mount helper; and for diagnosing a deployment that looks healthy but does not work.
+description: Deploy, verify, and operate a self-hosted mountOS storage system, and mount its volumes. Use for any task that mentions mountOS, appserv/dataserv/gcserv/blockserv, a mountOS hub, region, cluster, storage, volume, or access key; for standing up mountOS on AWS, GCP, or Azure with the mountos-io/deployment Terraform package; for explaining or diagramming the mountOS architecture and how its components interact; for mounting a mountOS volume on Linux, macOS, or Windows, including /etc/fstab and the mount helper; and for diagnosing a deployment that looks healthy but does not work.
 version: 1.0.0
 license: Apache-2.0
 ---
@@ -93,7 +93,7 @@ Enough to route correctly. The live documentation is authoritative for the detai
 | The operator wants to | Read |
 | --- | --- |
 | Understand the architecture, or draw it | [references/architecture.md](references/architecture.md), plus https://mountos.io/ai/topics/architecture.md |
-| Add mountOS under an existing product and an existing user base | [references/integration.md](references/integration.md) |
+| Add mountOS under an existing product and an existing user base | The `integrate` skill, https://github.com/mountos-io/skills |
 | Create cloud infrastructure and bring up the hub | https://mountos.io/skills/deploy.md, then [references/runbook.md](references/runbook.md) |
 | Create the tenant, region, and region services | https://mountos.io/skills/provision.md |
 | Create storages, volumes, and access keys, and mount | https://mountos.io/skills/volumes.md |
@@ -163,9 +163,6 @@ specific invariant rather than the general health check. See
 - [references/architecture.md](references/architecture.md): how the components interact,
   with diagrams you can show an operator. Control plane against data plane, the bring-up
   sequence, the mount and I/O path, raft inside a cluster, and the access surfaces.
-- [references/integration.md](references/integration.md): adding mountOS under a product
-  that already has customers. Mapping an existing user base, the two credential-issuing
-  shapes, the reconciliation loop, and which SDK to use.
 - [references/runbook.md](references/runbook.md): the ordered bring-up, with the commands
   and the hand-off points between stages.
 - [references/verification.md](references/verification.md): what "done" means at each

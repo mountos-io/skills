@@ -1,0 +1,22 @@
+{
+  "name": "integrate",
+  "displayName": "mountOS integrate",
+  "version": "1.0.0",
+  "description": "Add mountOS storage under a product that already has customers, users, and an identity provider.",
+  "author": {
+    "name": "mountOS",
+    "url": "https://mountos.io"
+  },
+  "homepage": "https://mountos.io/docs/ai",
+  "repository": "https://github.com/mountos-io/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "mountos",
+    "storage",
+    "integration",
+    "sdk",
+    "multi-tenant",
+    "s3",
+    "identity"
+  ]
+}

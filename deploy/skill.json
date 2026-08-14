@@ -8,7 +8,6 @@
   "entry": "SKILL.md",
   "references": [
     "references/architecture.md",
-    "references/integration.md",
     "references/runbook.md",
     "references/verification.md",
     "references/pitfalls.md",

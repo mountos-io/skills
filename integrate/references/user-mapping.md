@@ -1,8 +1,8 @@
-# Integrate an existing product and an existing user base
+# Mapping an existing user base
 
-Use this when mountOS is being added under a product that already has customers, users, and
-an identity provider. The goal is that your users keep their existing login and get storage,
-without you rebuilding identity or handing anyone the operator root key.
+The detail behind the `integrate` skill: how your tenants and users map onto mountOS
+records, how credentials are issued, and how to onboard a customer base that already
+exists.
 
 Authoritative references: https://mountos.io/skills/integrate.md for the data-plane
 surfaces, https://mountos.io/ai/topics/admin-sdk.md for the control plane, and the SDK
@@ -169,8 +169,9 @@ workload rather than standardising on one:
 - The CSI driver for Kubernetes PersistentVolumes.
 - The change-event feed when a service must react to changes without walking the tree.
 
-See [architecture.md](architecture.md) for how these relate, and
-https://mountos.io/skills/integrate.md for the exact flags and configuration.
+See https://mountos.io/skills/integrate.md for the exact flags and configuration, and the
+`deploy` skill's architecture reference (https://github.com/mountos-io/skills) for how the
+surfaces relate to the rest of the system.
 
 ## What to check before you call the integration done
 

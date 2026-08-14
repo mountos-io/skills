@@ -1,0 +1,22 @@
+{
+  "name": "troubleshoot",
+  "displayName": "mountOS troubleshoot",
+  "version": "1.0.0",
+  "description": "Diagnose a mountOS deployment that is failing or behaving wrongly: what evidence to gather in what order, which checks prove nothing, and the failure modes that report healthy while broken.",
+  "author": {
+    "name": "mountOS",
+    "url": "https://mountos.io"
+  },
+  "homepage": "https://mountos.io/docs/ai",
+  "repository": "https://github.com/mountos-io/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "mountos",
+    "storage",
+    "troubleshooting",
+    "diagnostics",
+    "quorum",
+    "mount",
+    "operations"
+  ]
+}

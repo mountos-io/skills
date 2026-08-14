@@ -1,0 +1,21 @@
+{
+  "name": "integrate",
+  "version": "1.0.0",
+  "description": "Add mountOS storage under a product that already has customers, users, and an identity provider.",
+  "license": "Apache-2.0",
+  "homepage": "https://mountos.io",
+  "repository": "https://github.com/mountos-io/skills",
+  "entry": "SKILL.md",
+  "references": [
+    "references/user-mapping.md"
+  ],
+  "update": {
+    "version_url": "https://raw.githubusercontent.com/mountos-io/skills/main/integrate/VERSION",
+    "manifest_url": "https://raw.githubusercontent.com/mountos-io/skills/main/integrate/skill.json",
+    "changelog_url": "https://raw.githubusercontent.com/mountos-io/skills/main/integrate/CHANGELOG.md"
+  },
+  "compatibility": {
+    "mountos_series": "1.6.x",
+    "note": "The skill loads current documentation from https://mountos.io on every use, so it tracks newer mountOS releases without a skill update. This field records the release series the bundled content was written against."
+  }
+}

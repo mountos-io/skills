@@ -1,0 +1,21 @@
+{
+  "name": "troubleshoot",
+  "version": "1.0.0",
+  "description": "Diagnose a mountOS deployment that is failing or behaving wrongly: what evidence to gather in what order, which checks prove nothing, and the failure modes that report healthy while broken.",
+  "license": "Apache-2.0",
+  "homepage": "https://mountos.io",
+  "repository": "https://github.com/mountos-io/skills",
+  "entry": "SKILL.md",
+  "references": [
+    "references/method.md"
+  ],
+  "update": {
+    "version_url": "https://raw.githubusercontent.com/mountos-io/skills/main/troubleshoot/VERSION",
+    "manifest_url": "https://raw.githubusercontent.com/mountos-io/skills/main/troubleshoot/skill.json",
+    "changelog_url": "https://raw.githubusercontent.com/mountos-io/skills/main/troubleshoot/CHANGELOG.md"
+  },
+  "compatibility": {
+    "mountos_series": "1.6.x",
+    "note": "The skill loads current documentation from https://mountos.io on every use, so it tracks newer mountOS releases without a skill update. This field records the release series the bundled content was written against."
+  }
+}

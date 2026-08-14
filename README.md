@@ -6,9 +6,11 @@ mounts plus S3 and WebHDFS.
 
 Each skill is one directory holding a `SKILL.md` and its references.
 
-| Skill | Covers |
-| --- | --- |
-| [`deploy`](deploy/) | Stand up, verify, operate, and integrate a deployment. Architecture and component interaction, the ordered bring-up, per-stage verification, integration with an existing user base, and the failure modes that report healthy while the system is broken. |
+| Skill | For | Covers |
+| --- | --- | --- |
+| [`deploy`](deploy/) | Operator | Stand up, verify, and operate a deployment. Architecture and component interaction, the ordered bring-up, per-stage verification, and the failure modes that report healthy while the system is broken. |
+| [`integrate`](integrate/) | Application developer | Add mountOS under a product that already has customers. Mapping an existing user base, credential-issuing shapes, the reconciliation loop, and picking a data surface per workload. |
+| [`troubleshoot`](troubleshoot/) | Whoever is on call | Diagnose a deployment that is failing. What evidence to gather in what order, which checks prove nothing, and the healthy-but-broken catalogue. |
 
 The skills are deliberately thin on reference detail. On every use they load the current
 documentation from https://mountos.io, which is generated from the mountOS source, so
@@ -16,8 +18,8 @@ version-specific facts stay correct without this repository being republished.
 
 ## Install
 
-The skill is plain Markdown. Nothing in it is specific to one vendor's agent, so pick
-whichever route below matches your tool.
+The skills are plain Markdown and independent of each other. Nothing in them is specific to
+one vendor's agent, so pick whichever route below matches your tool.
 
 ### Any agent, no install
 
@@ -25,7 +27,10 @@ Give it one line:
 
 > Read https://raw.githubusercontent.com/mountos-io/skills/main/deploy/deploy.bundle.md and follow it.
 
-[`deploy/deploy.bundle.md`](deploy/deploy.bundle.md) is the whole skill in one file, entry
+Swap `deploy` for `integrate` or `troubleshoot` to load a different one. Each bundle is
+self-contained.
+
+[`deploy/deploy.bundle.md`](deploy/deploy.bundle.md) is that whole skill in one file, entry
 point plus every reference, with the cross-links rewritten as in-document anchors. It works
 with any agent that can fetch a URL or accept a pasted document, including ChatGPT, OpenAI
 Codex, Gemini, Cursor, Windsurf, Continue, Aider, and a plain API call. Paste it into a
@@ -48,17 +53,17 @@ this up on their own once the repository is in the workspace, because
 
 ```bash
 ln -s ~/.mountos-skills/deploy ~/.claude/skills/deploy
+ln -s ~/.mountos-skills/integrate ~/.claude/skills/integrate
+ln -s ~/.mountos-skills/troubleshoot ~/.claude/skills/troubleshoot
 ```
 
-```bash
-ln -s ~/.mountos-skills/deploy .claude/skills/deploy
-```
+Link only the ones you want; they are independent. Use `.claude/skills/` instead of
+`~/.claude/skills/` for a single project. Each is then available by its name, for example
+`/deploy`. If you already have a skill by one of these names, link it with a prefix
+(`mountos-deploy`) and the agent will use that name.
 
-The skill is then available as `/deploy`. If you already have a skill by that name, link it
-as `mountos-deploy` instead and the agent will use that name.
-
-**Anything else**: copy `deploy/` into whatever skill or rules directory your tool uses, or
-point the tool at `deploy/SKILL.md`. Keep `references/` alongside it.
+**Anything else**: copy the skill directory into whatever skill or rules directory your tool
+uses, or point the tool at its `SKILL.md`. Keep `references/` alongside it.
 
 ### Claude Code plugin
 
@@ -71,6 +76,9 @@ This repository is also a plugin marketplace, which handles install and updates 
 ```
 /plugin install deploy@mountos
 ```
+
+Each skill is a separate plugin, so `integrate@mountos` and `troubleshoot@mountos` install
+the same way, independently.
 
 The manifests live in `.claude-plugin/`. They are additive: every route above works whether
 or not you use them, and they are ignored entirely by other agents.
@@ -98,7 +106,8 @@ and upgrades every linked skill at once:
 git -C ~/.mountos-skills pull --ff-only
 ```
 
-Version meaning is in each skill's changelog, for example
+Each skill versions independently, so `integrate` can move without forcing a `deploy`
+release. Version meaning is in each skill's changelog, for example
 [deploy/CHANGELOG.md](deploy/CHANGELOG.md). In short: major means an agent following the
 previous version would now do the wrong thing, minor means new or materially expanded
 guidance, patch means corrections.

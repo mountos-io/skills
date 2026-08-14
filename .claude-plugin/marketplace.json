@@ -12,7 +12,17 @@
     {
       "name": "deploy",
       "source": "./deploy",
-      "description": "Deploy, verify, operate, and integrate a self-hosted mountOS storage system. Architecture diagrams, the ordered bring-up, per-stage verification, integration with an existing user base, and the failure modes that report healthy while the system is broken."
+      "description": "Deploy, verify, and operate a self-hosted mountOS storage system. Architecture diagrams, the ordered bring-up, per-stage verification, and the failure modes that report healthy while the system is broken."
+    },
+    {
+      "name": "integrate",
+      "source": "./integrate",
+      "description": "Add mountOS storage under a product that already has customers, users, and an identity provider. Mapping an existing user base, credential-issuing shapes, the reconciliation loop, and picking a data surface per workload."
+    },
+    {
+      "name": "troubleshoot",
+      "source": "./troubleshoot",
+      "description": "Diagnose a mountOS deployment that is failing or behaving wrongly: what evidence to gather in what order, which checks prove nothing, and the failure modes that report healthy while broken."
     }
   ]
 }

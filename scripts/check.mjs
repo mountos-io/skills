@@ -59,13 +59,34 @@ for (const f of docs) {
 }
 
 // 2. relative links
+//
+// Two rules, and the second is the one that bites. A relative link INSIDE a skill is
+// correct and load-bearing: the files always ship together, so the multi-file form reads
+// them from local disk with no network. A relative link that CROSSES a skill boundary is a
+// latent break: skills install independently, so `../deploy/references/x.md` resolves here
+// in the repo, passes this check, and is broken for anyone who installed only this skill.
+// Cross-skill references must be absolute URLs. Enforced rather than remembered, because
+// the failure looks verified.
+const skillOf = (f) => {
+  const top = f.split('/')[0]
+  return skills.includes(top) ? top : null
+}
 for (const f of docs) {
   for (const m of readFileSync(join(root, f), 'utf8').matchAll(/\]\(([^)#\s]+)(?:#[^)\s]*)?\)/g)) {
     const target = m[1]
     if (/^(https?:|mailto:)/.test(target)) continue
     const abs = resolve(join(root, dirname(f)), target)
-    if (existsSync(abs)) pass(`link ${f} -> ${target}`)
-    else fail(`link ${f} -> ${target} does not exist`)
+    if (!existsSync(abs)) {
+      fail(`link ${f} -> ${target} does not exist`)
+      continue
+    }
+    const from = skillOf(f)
+    const to = skillOf(relative(root, abs))
+    if (from && to !== from) {
+      fail(`link ${f} -> ${target} crosses a skill boundary; use the absolute GitHub URL, since skills install independently`)
+      continue
+    }
+    pass(`link ${f} -> ${target}`)
   }
 }
 
