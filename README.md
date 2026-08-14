@@ -125,6 +125,13 @@ make validate  # validate the Claude Code manifests, skipped if the CLI is absen
 up with no change to the scripts. It fails when a committed bundle is stale, so the
 single-file form cannot silently drift from the multi-file one.
 
+**Link rule, enforced by `make check`.** A relative link *inside* a skill is correct and
+load-bearing: those files always ship together, so the multi-file form reads them from local
+disk with no network. A relative link that *crosses* a skill boundary is rejected. Skills
+install independently, so `../deploy/references/x.md` would resolve here in the repo, pass a
+naive check, and be broken for anyone who installed only one skill. Reference another skill
+by its absolute GitHub URL.
+
 ## Coverage and honesty
 
 The AWS path has been deployed end to end and mounted from a genuinely external client. GCP
