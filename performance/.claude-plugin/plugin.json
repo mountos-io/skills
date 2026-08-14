@@ -2,7 +2,7 @@
   "name": "performance",
   "displayName": "mountOS performance",
   "version": "1.0.0",
-  "description": "Measure mountOS performance against a baseline on a mounted volume: metadata operation rates with mdtest across directory shapes, and small-file workload timing.",
+  "description": "Measure mountOS performance against a baseline on a mounted volume: a concurrent mixed workload with latency percentiles and correctness counters, metadata rates with mdtest, and small-file workload timing.",
   "author": {
     "name": "mountOS",
     "url": "https://mountos.io"

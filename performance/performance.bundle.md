@@ -55,6 +55,7 @@ present.
 
 | Tool | Measures |
 | --- | --- |
+| `mosbench.sh` | Eleven concurrent mixed workloads, with latency percentiles and correctness counters |
 | `mdtest.sh` | Metadata operation rates: create, stat, remove, across directory shapes |
 | `smallfiles.sh` | Wallclock for a source checkout and a dependency install |
 
@@ -96,6 +97,71 @@ sudo ./mdtest.sh --list
 sudo ./mdtest.sh                      # default set
 sudo TASKS=4 ./mdtest.sh shared-dir unique-dir
 ```
+
+## mosbench: concurrent mixed workload
+
+The tool of record for workload measurement. Eleven **different** workloads run at
+the same time, because a real system has a build, a log writer, a backup reader and
+a scanner competing at once, and the interesting behaviour only appears under that
+mix.
+
+```bash
+sudo ./mosbench.sh /mnt/mountos          # prepare corpus, run the mix, report
+sudo ./mosbench.sh --list                # what each workload probes
+```
+
+| Workload | Exercises |
+| --- | --- |
+| `rename` | same-dir, cross-dir, and replace-existing rename, each a distinct metadata transaction |
+| `links` | hardlink, symlink, readlink, resolution through a symlink, nlink accounting |
+| `trunc` | truncate extend and shrink, sparse far writes, and holes that must read as zero |
+| `append` | append-heavy writes with an fsync boundary, rotation, and a live tailer on a growing inode |
+| `xattr` | xattr set, get, list, remove against the metadata service |
+| `readdir` | one lister against two mutators, with sentinels that must never disappear |
+| `raw` | read-after-write, counting ENOENT and stale content |
+| `openclose` | open and close churn |
+| `deep` | traversal of depth-20 paths |
+| `walk` | a full scanner as a noisy neighbour |
+| `churn` | create and unlink storms |
+
+Two properties make this worth more than a throughput number:
+
+- **It reports latency distribution, not just aggregate rate.** Tail latency is what
+  users feel on a network filesystem, so p50 and p90 are the comparison metrics.
+- **It carries correctness counters alongside the timings.** Holes are read back and
+  must be zero, nlink is checked after linking, readdir sentinels must never vanish,
+  and read-after-write verifies content. A `correctness counters: CLEAN` line means
+  the mix found no data or metadata error while it measured. Any nonzero counter is
+  a defect, and matters more than any latency number in the same run.
+
+**No network fetch inside the timed section.** The corpus is generated locally by a
+`prepare` phase that runs untimed, and it is manifest-guarded, so a seed or shape
+mismatch refuses to run rather than silently comparing two different tests.
+
+Compare runs with `mosbench.py compare a/results.json b/results.json`, which judges
+only the stable metrics and always fails on a nonzero correctness counter.
+
+### Which numbers to trust
+
+Stable enough to compare run to run, given the same seed, mix, duration, host, and
+cache settings: **count, ops/s, p50, p90**.
+
+Noisy, read with judgment: **p99**. And **max is a single sample**, so it is never a
+regression on its own.
+
+### Why this is custom rather than an off-the-shelf tool
+
+No existing tool covers the intersection. `fio` has excellent percentiles and does
+run mixed jobs concurrently, but it has no engine for rename, hardlink, symlink,
+xattr, or listing a directory while it mutates, and its `filecreate`/`filestat`/
+`filedelete` engines do one operation per job. `smallfile` has the right operation
+vocabulary but takes a single operation per invocation, so it cannot produce a mix.
+`filebench` is built for mixed personalities but is effectively unmaintained, needs
+ASLR disabled, and is not packaged for these hosts. `elbencho` is maintained and has
+percentiles but runs phases sequentially and has no rename, link, or xattr.
+
+For pure data-path throughput questions, `fio` remains the right tool and this does
+not replace it.
 
 ## smallfiles: a source checkout and a dependency install
 

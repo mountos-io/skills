@@ -1,7 +1,7 @@
 {
   "name": "performance",
   "version": "1.0.0",
-  "description": "Measure mountOS performance against a baseline on a mounted volume: metadata operation rates with mdtest across directory shapes, and small-file workload timing.",
+  "description": "Measure mountOS performance against a baseline on a mounted volume: a concurrent mixed workload with latency percentiles and correctness counters, metadata rates with mdtest, and small-file workload timing.",
   "license": "Apache-2.0",
   "homepage": "https://mountos.io",
   "repository": "https://github.com/mountos-io/skills",
@@ -9,6 +9,8 @@
   "references": [],
   "scripts": [
     "setup.sh",
+    "mosbench.sh",
+    "mosbench.py",
     "mdtest.sh",
     "smallfiles.sh"
   ],
