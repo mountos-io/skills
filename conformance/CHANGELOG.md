@@ -7,6 +7,13 @@ Versioning is semantic, applied to the skill itself, not to mountOS.
 - **Minor**: new sections, new suites, or materially expanded guidance.
 - **Patch**: corrections, clarifications, and link fixes.
 
+## 1.0.1
+
+- `setup.sh`: `dnf -y install ... curl ...` failed outright on a fresh AL2023
+  instance whose mirror snapshot had accumulated enough past `curl-minimal` builds
+  to make a plain `curl` install unresolvable, silently skipping the whole
+  transaction. Fixed with `--allowerasing`.
+
 ## 1.0.0
 
 First release. Written while running these suites against a real deployment from a

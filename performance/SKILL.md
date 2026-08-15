@@ -1,7 +1,7 @@
 ---
 name: performance
 description: Measure mountOS performance against a baseline, on a mounted volume on Linux. Covers metadata operation rates with mdtest across directory shapes (flat, deep, wide, shared versus unique parent, phase isolation), and small-file workload timing. Use to size a deployment, to compare two configurations, or to track a regression between releases.
-version: 1.0.0
+version: 1.0.1
 license: Apache-2.0
 ---
 

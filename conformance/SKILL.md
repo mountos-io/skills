@@ -1,7 +1,7 @@
 ---
 name: conformance
 description: Run filesystem conformance and data-integrity suites against a mounted mountOS volume on Linux. Use to verify a deployment with pjdfstest (POSIX conformance), LTP syscalls, and fsx (data-path consistency); to set up those suites natively on a fresh Linux host; or to interpret their results, including which reported failures are configuration rather than defects.
-version: 1.0.0
+version: 1.0.1
 license: Apache-2.0
 ---
 

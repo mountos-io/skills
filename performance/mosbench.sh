@@ -7,10 +7,13 @@
 #
 # Everything after the target directory is passed to mosbench.py verbatim
 # (see: python3 mosbench.py run --help). The wrapper only does preflight:
-# python version, target sanity, and a warning when the target is not a FUSE
-# mount, which is a warning rather than an error because a local-disk run of
-# the exact same mix is the natural baseline to compare a mount against.
+# python version, target sanity, and refuses a non-FUSE target by default (see
+# ALLOW_NON_FUSE below for the deliberate local-disk-baseline exception).
 set -euo pipefail
+
+# A non-login shell (cron, SSM RunShellScript, etc.) can reach here with HOME
+# unset; python/npm-adjacent tooling downstream assumes a real home directory.
+export HOME="${HOME:-/root}"
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 

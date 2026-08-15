@@ -30,7 +30,11 @@ if have apt-get; then
 elif have dnf; then
   dnf -y group install "Development Tools" >/dev/null 2>&1 || \
     dnf -y groupinstall "Development Tools" >/dev/null 2>&1
-  dnf -y install \
+  # --allowerasing: AL2023 ships curl-minimal by default, and its own mirror
+  # accumulates enough past curl-minimal builds that a plain `dnf install curl`
+  # regularly fails on a package conflict dnf can't resolve on its own; letting
+  # it erase curl-minimal in favor of curl is the documented fix.
+  dnf -y install --allowerasing \
     autoconf automake libtool pkgconf-pkg-config \
     git curl wget ca-certificates jq python3 \
     openmpi openmpi-devel \

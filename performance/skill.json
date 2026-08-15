@@ -1,6 +1,6 @@
 {
   "name": "performance",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Measure mountOS performance against a baseline on a mounted volume: a concurrent mixed workload with latency percentiles and correctness counters, metadata rates with mdtest, and small-file workload timing.",
   "license": "Apache-2.0",
   "homepage": "https://mountos.io",

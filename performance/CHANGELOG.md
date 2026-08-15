@@ -2,6 +2,15 @@
 
 Versioning is semantic, applied to the skill itself, not to mountOS.
 
+## 1.0.1
+
+- `setup.sh`: `dnf -y install ... curl ...` failed outright on a fresh AL2023
+  instance whose mirror snapshot had accumulated enough past `curl-minimal` builds
+  to make a plain `curl` install unresolvable, silently skipping the whole
+  transaction including `mdtest`. Fixed with `--allowerasing`.
+- `mosbench.sh`: added the same `HOME` fallback its siblings already carry, for a
+  non-login invocation (SSM `RunShellScript`, cron) where `HOME` is unset.
+
 ## 1.0.0
 
 First release. Holds the measurement tools, which report rates and wallclock read
