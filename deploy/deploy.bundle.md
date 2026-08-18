@@ -1,4 +1,4 @@
-# mountOS deploy skill (single-file bundle, version 1.0.0)
+# mountOS deploy skill (single-file bundle, version 1.1.0)
 
 This file is the entire skill in one document: the entry point followed by every
 reference it links to. It exists for agents that cannot follow relative links or read
@@ -48,7 +48,7 @@ summary and that version-specific details are unverified.
 
 ## Keep this skill current
 
-This skill is version `1.0.0`. Two different things go stale, and they are refreshed
+This skill is version `1.1.0`. Two different things go stale, and they are refreshed
 differently.
 
 - **mountOS facts** (flags, variable names, endpoints, defaults) refresh on every use,
@@ -63,7 +63,7 @@ not match what the operator sees:
 curl -fsSL https://raw.githubusercontent.com/mountos-io/skills/main/deploy/VERSION
 ```
 
-If that value is higher than `1.0.0`, tell the operator, point them at
+If that value is higher than `1.1.0`, tell the operator, point them at
 https://github.com/mountos-io/skills/blob/main/deploy/CHANGELOG.md, and offer the upgrade:
 
 ```bash
@@ -748,6 +748,19 @@ Use the Admin SDK (`@mountos-io/admin-sdk` for TypeScript, the Go module, or the
 crate) against the running hub, with the operator's admin private key.
 
 Create the account, then add users to it.
+
+Admin-level access needs no user record. `superadmin`, `l1admin`, and `l2admin` are
+provider-defined roles; appserv treats any role other than `user` as system-admin scope,
+with no matching account user required. If the deployment's operator app is the mountOS
+admin dashboard (https://github.com/mountos-io/mountos-admin-client), prefer that over
+scripting an Admin API user for the operator's own first login: mint a Provider-signed
+sign-in token (EdDSA JWT, `aud=mountos/dashboard`, `role=superadmin`, ~60s TTL) and open
+`<dashboard>/?token=<jwt>`. The dashboard ships a browser tool for exactly this,
+`/tools/generate-login-token` — paste the Provider signing seed into that tab (it stays
+client-side, never sent anywhere) instead of writing the JWT by hand. It is a manual,
+one-shot bootstrap aid, not a persistent login method; regenerate it whenever the token
+lapses. Only `role=user` needs an existing account user, resolved by `username` and
+`account_id`.
 
 **Assertion:** the account reads back by id.
 

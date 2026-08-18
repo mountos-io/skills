@@ -76,6 +76,19 @@ crate) against the running hub, with the operator's admin private key.
 
 Create the account, then add users to it.
 
+Admin-level access needs no user record. `superadmin`, `l1admin`, and `l2admin` are
+provider-defined roles; appserv treats any role other than `user` as system-admin scope,
+with no matching account user required. If the deployment's operator app is the mountOS
+admin dashboard (https://github.com/mountos-io/mountos-admin-client), prefer that over
+scripting an Admin API user for the operator's own first login: mint a Provider-signed
+sign-in token (EdDSA JWT, `aud=mountos/dashboard`, `role=superadmin`, ~60s TTL) and open
+`<dashboard>/?token=<jwt>`. The dashboard ships a browser tool for exactly this,
+`/tools/generate-login-token` — paste the Provider signing seed into that tab (it stays
+client-side, never sent anywhere) instead of writing the JWT by hand. It is a manual,
+one-shot bootstrap aid, not a persistent login method; regenerate it whenever the token
+lapses. Only `role=user` needs an existing account user, resolved by `username` and
+`account_id`.
+
 **Assertion:** the account reads back by id.
 
 ## Stage 3: region

@@ -11,6 +11,13 @@ The skill loads current documentation from https://mountos.io on every use, so i
 mountOS releases without a release here. A release here means the operational guidance
 changed.
 
+## 1.1.0
+
+- Stage 2 (tenant) now notes that admin-level dashboard access (`superadmin`, `l1admin`,
+  `l2admin`) needs no account user record, and recommends minting a Provider-signed
+  sign-in token through the mountOS admin dashboard's `/tools/generate-login-token` page
+  for the operator's own first login, rather than scripting an Admin API user for it.
+
 ## 1.0.0
 
 First public release. Vendor-neutral: the skill body names no specific agent, and ships in

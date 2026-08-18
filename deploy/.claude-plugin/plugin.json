@@ -1,7 +1,7 @@
 {
   "name": "deploy",
   "displayName": "mountOS deploy",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Deploy, verify, operate, and integrate a self-hosted mountOS storage system, and mount its volumes.",
   "author": {
     "name": "mountOS",
