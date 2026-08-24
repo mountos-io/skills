@@ -364,6 +364,11 @@ def wl_links(ctx, rec, role, idx):
         data = timeit(rec, "links.open_via_symlink", open_follow)
         if data != payload:
             rec.count("links.symlink_content_mismatch")
+            print("WARNING: links.symlink_content_mismatch symlink=%r "
+                  "target=%r expected_len=%d actual_len=%d "
+                  "expected_head=%r actual_head=%r" %
+                  (sym, tgt, len(payload), len(data),
+                   payload[:32], data[:32]))
         for p in (hrd, sym, tgt):
             timeit(rec, "links.unlink", lambda p=p: os.unlink(p))
 
@@ -517,6 +522,9 @@ def wl_xattr(ctx, rec, role, idx):
         rec.count("xattr.roundtrips")
         if got != val:
             rec.count("xattr.mismatch")
+            print("WARNING: xattr.mismatch path=%r key=%r "
+                  "expected_head=%r actual_head=%r" %
+                  (p, key, val[:32], got[:32]))
         timeit(rec, "xattr.list", lambda: os.listxattr(p))
         if rng.random() < 0.25:
             timeit(rec, "xattr.remove", lambda: os.removexattr(p, key))
@@ -573,8 +581,19 @@ def wl_raw(ctx, rec, role, idx):
         def step():
             seq[0] += 1
             size = rng.choice((1024, 2048, 4096, 8192, 16384))
-            tag = b"raw:%d:%d\n" % (seq[0], size)
-            p = os.path.join(d, "f%d" % seq[0])
+            tag = b"raw:%d:%d:%d\n" % (idx, seq[0], size)
+            # idx-namespaced, mirroring wl_links' per-thread subdirectory:
+            # seq is thread-local (reset to 0 per writer thread), so with
+            # multiple writer threads (--threads raw.writer=N > 1) a bare
+            # "f%d" % seq[0] repeats the same name across threads. One
+            # thread's O_EXCL create then loses the create race to another,
+            # and a reader that already dequeued the loser's (path, tag,
+            # size) can end up reading whichever thread's write actually won
+            # -- a real content mismatch, but a benchmark-harness path
+            # collision, not a filesystem bug. Confirmed via a local repro:
+            # every "raw.stale_content" mismatch's actual bytes exactly
+            # matched a *different* valid write to the same bare path.
+            p = os.path.join(d, "f%d_%d" % (idx, seq[0]))
 
             def write():
                 fd = os.open(p, os.O_CREAT | os.O_WRONLY | os.O_EXCL, 0o644)
@@ -616,6 +635,9 @@ def wl_raw(ctx, rec, role, idx):
         rec.count("raw.verified")
         if len(data) != size or not data.startswith(tag):
             rec.count("raw.stale_content")
+            print("WARNING: raw.stale_content path=%r expected_size=%d "
+                  "actual_size=%d expected_tag=%r actual_head=%r" %
+                  (p, size, len(data), tag, data[:32]))
         timeit(rec, "raw.unlink", lambda: os.unlink(p))
 
     run_loop(ctx, rec, "raw.read_step", step)

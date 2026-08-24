@@ -2,6 +2,30 @@
 
 Versioning is semantic, applied to the skill itself, not to mountOS.
 
+## 1.0.2
+
+- `mosbench.py`: `wl_raw`'s writer built its per-file path from a bare,
+  thread-local sequence counter (`f%d % seq[0]`) with no thread identity in
+  it, unlike every other workload's own per-thread subdirectory
+  (`wl_links`'s `d = wdir("links", "w%d" % idx)`). With more than one writer
+  role thread (`--threads raw.writer=N > 1`), every writer counts through the
+  same integer sequence independently and collides on identical filenames:
+  one thread's `O_EXCL` create loses the race to another, and a reader that
+  already dequeued the loser's `(path, tag, size)` can end up reading
+  whichever thread's write actually landed there. That surfaced as a false
+  `raw.stale_content` correctness counter, not a real filesystem defect --
+  confirmed via a local repro where every mismatch's actual bytes exactly
+  matched a *different*, genuinely valid write to the same bare path. Fixed
+  by namespacing both the path and the tag by writer `idx`, mirroring
+  `wl_links`'s already-correct pattern. Verified the fix eliminates the
+  mismatch under the same stress conditions that reproduced it.
+- `wl_raw` (`raw.stale_content`), `wl_links` (`links.symlink_content_mismatch`),
+  and `wl_xattr` (`xattr.mismatch`) now log the specific path (and xattr key)
+  plus expected-vs-actual size/content on a real mismatch, not just the
+  aggregate counter. A correctness counter tripping used to leave no trail to
+  follow; the path-collision bug above was found and root-caused using this
+  same logging.
+
 ## 1.0.1
 
 - `setup.sh`: `dnf -y install ... curl ...` failed outright on a fresh AL2023
