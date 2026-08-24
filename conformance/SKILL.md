@@ -1,7 +1,7 @@
 ---
 name: conformance
 description: Run filesystem conformance and data-integrity suites against a mounted mountOS volume on Linux. Use to verify a deployment with pjdfstest (POSIX conformance), LTP syscalls, and fsx (data-path consistency); to set up those suites natively on a fresh Linux host; or to interpret their results, including which reported failures are configuration rather than defects.
-version: 1.0.1
+version: 1.0.2
 license: Apache-2.0
 ---
 
@@ -25,15 +25,15 @@ means the same thing it means for ext4 or XFS.
 Where this repository and the live documentation disagree, the live documentation
 wins.
 
-## The flag that decides whether pjdfstest passes
+## The flags both pjdfstest AND LTP need
 
-**Mount with `--acl` or pjdfstest `open/26.t` will fail, and the failure looks
-exactly like a POSIX bug.**
+Both suites, not just one, depend on the mount flags below — a plain, flag-free
+mount produces failures in each that look exactly like real defects and are not.
 
-`open(path, O_CREAT, 0000)` must create a file with mode `0000`. Without `--acl`,
-mountOS stores that as `0644`, because a zero mode is treated as "unset" and a
-default applied. `--acl` (and `--umask`, and the explicit `--null-permissions`)
-turn on exact mode preservation.
+**`--acl` decides whether pjdfstest passes.** `open(path, O_CREAT, 0000)` must
+create a file with mode `0000`. Without `--acl`, mountOS stores that as `0644`,
+because a zero mode is treated as "unset" and a default applied. `--acl` (and
+`--umask`, and the explicit `--null-permissions`) turn on exact mode preservation.
 
 Every non-zero mode round-trips correctly either way, so the symptom is narrow and
 easy to misread as a create-path defect. Check the mount flags before you file a
@@ -45,6 +45,15 @@ python3 -c 'import os;os.close(os.open(".m",os.O_CREAT|os.O_WRONLY,0o000))'
 stat -c %a .m   # want 0, not 644
 rm -f .m
 ```
+
+**`--xattr` decides whether LTP's xattr/ACL test files even run.** Without it,
+`setxattr`/`getxattr`/`listxattr` return `ENOTSUP` on a mountOS mount (confirmed
+directly: a `user.*` xattr probe against a plain, flag-free mount fails this way).
+LTP's xattr-family tests (`setxattr*`, `getxattr*`, `listxattr*`, `fsetxattr*`,
+POSIX ACL tests) then report as failures rather than the real pass/fail signal
+they're meant to be. `--ioctl` is the matching flag for LTP's ioctl-family tests.
+This is not pjdfstest-specific — it is the identical "flag-shaped failure that
+reads like a defect" trap, one syscall family over.
 
 ## Conformance mount
 

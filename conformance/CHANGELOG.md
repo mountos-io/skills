@@ -7,6 +7,18 @@ Versioning is semantic, applied to the skill itself, not to mountOS.
 - **Minor**: new sections, new suites, or materially expanded guidance.
 - **Patch**: corrections, clarifications, and link fixes.
 
+## 1.0.2
+
+- Clarified that `--xattr`/`--ioctl`, not just `--acl`, are load-bearing: without
+  `--xattr` on the mount, `setxattr`/`getxattr` return `ENOTSUP` and LTP's
+  xattr/ACL test files fail in a way that reads like real syscall bugs. Same
+  "flag-shaped failure that reads like a defect" trap `--acl` already documented
+  for pjdfstest, one syscall family over.
+- `run.sh`: added `check_xattr`, a one-second preflight before the LTP run
+  (mirrors the existing `check_acl` preflight before pjdfstest), so a
+  misconfigured mount fails fast with a clear remediation instead of burning a
+  full LTP run on a flag problem.
+
 ## 1.0.1
 
 - `setup.sh`: `dnf -y install ... curl ...` failed outright on a fresh AL2023

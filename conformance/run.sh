@@ -75,8 +75,26 @@ run_fsx() {
   return $rc
 }
 
+# The xattr assertion. Without --xattr on the mount, setxattr/getxattr return
+# ENOTSUP and LTP's xattr/ACL test files (setxattr*, getxattr*, listxattr*,
+# fsetxattr*) fail in a way that reads like real syscall bugs, not a mount flag.
+check_xattr() {
+  local probe="$MNT/.mos-xattrcheck.$$"
+  rm -f "$probe"
+  : > "$probe" 2>/dev/null
+  if ! setfattr -n user.mosconformance -v ok "$probe" 2>/dev/null; then
+    rm -f "$probe"
+    say "WARNING: setxattr failed (ENOTSUP without --xattr on the mount)."
+    say "         Remount with --xattr --ioctl, or LTP's xattr/ACL tests WILL fail."
+    return 1
+  fi
+  rm -f "$probe"
+  say "xattr support: ok"
+}
+
 run_ltp() {
   say "ltp start"
+  check_xattr || say "continuing anyway; expect LTP xattr/ACL tests to fail"
   local log="$LOGDIR/ltp.log"; : > "$log"
   [ -x "$PREFIX/kirk/kirk" ] || { say "kirk missing; run setup.sh"; return 1; }
   mkdir -p "$MNT/ltprun"

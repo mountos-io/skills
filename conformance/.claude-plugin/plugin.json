@@ -1,7 +1,7 @@
 {
   "name": "conformance",
   "displayName": "mountOS conformance",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Run filesystem conformance and data-integrity suites (pjdfstest, LTP, fsx) against a mounted mountOS volume on Linux, and interpret the results.",
   "author": {
     "name": "mountOS",
