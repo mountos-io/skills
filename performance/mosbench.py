@@ -44,7 +44,7 @@ import time
 from collections import deque
 from datetime import datetime, timezone
 
-TOOL_VERSION = "1.0.0"
+TOOL_VERSION = "1.0.2"
 SCHEMA = "mosbench/1"
 
 # Corpus shape constants. Changing any of these changes what the numbers mean,
