@@ -22,7 +22,7 @@ export HOME="${HOME:-/root}"
 COMBOS=(
 "flat-wide|-n 10000 -F -C -T -r -w 0 -e 0|One directory, 10k zero-byte files. Single-directory scaling: lookup and readdir cost as a directory grows."
 "flat-small|-n 2000 -F -C -T -r -w 0 -e 0|Same shape, smaller. A quick signal, and the one to run first."
-"deep-tree|-z 10 -b 2 -I 10|Depth 10, branching 2. Path-traversal cost: every op walks ten levels."
+"deep-tree|-z 5 -b 2 -I 10|Depth 5, branching 2. Path-traversal cost: every op walks five levels."
 "wide-tree|-z 2 -b 32 -I 10|Depth 2, branching 32. Many sibling directories rather than depth."
 "shared-dir|-n 2000 -F -C -T -r -w 0 -e 0|All tasks in ONE directory. Concurrent create in a shared parent, which is where ownership and locking contention shows. Run with TASKS>1 or it proves nothing."
 "unique-dir|-n 2000 -F -u -C -T -r -w 0 -e 0|Each task its own directory. The contention-free control for shared-dir; compare the two."

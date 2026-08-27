@@ -69,7 +69,7 @@ combination with its arguments; the shapes and why each exists:
 | --- | --- |
 | `flat-small` | One directory, 2k zero-byte files. Quick signal; run first. |
 | `flat-wide` | Same shape at 10k. Single-directory scaling as a directory grows. |
-| `deep-tree` | Depth 10, branching 2. Path-traversal cost when every op walks ten levels. |
+| `deep-tree` | Depth 5, branching 2. Path-traversal cost when every op walks five levels. |
 | `wide-tree` | Depth 2, branching 32. Many sibling directories rather than depth. |
 | `shared-dir` | All tasks in ONE directory. Concurrent create in a shared parent, where ownership and locking contention shows. |
 | `unique-dir` | Each task its own directory. The contention-free control for `shared-dir`. |

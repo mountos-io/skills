@@ -2,6 +2,12 @@
 
 Versioning is semantic, applied to the skill itself, not to mountOS.
 
+## 1.0.3
+
+- `mdtest.sh`: `deep-tree` walked to depth 10 (`-z 10`), deeper than the
+  path lengths most deployments actually see. Reduced to depth 5 (`-z 5`)
+  so the traversal cost measured matches typical directory nesting.
+
 ## 1.0.2
 
 - `mosbench.py`: `wl_raw`'s writer built its per-file path from a bare,
