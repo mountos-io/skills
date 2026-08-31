@@ -13,8 +13,8 @@ firewall rule.
 
 ## Topology
 
-One hub serves the whole deployment. Regions sit under an account. Clusters partition load
-inside a region.
+One hub serves the whole deployment. Regions sit under an account. Metadata clusters
+partition load inside a region.
 
 ```mermaid
 flowchart TB
@@ -27,7 +27,7 @@ flowchart TB
   subgraph REGION["Region, one database and one secret store"]
     REGIONDB[("region database")]
     REGIONVAULT[["region secret store"]]
-    subgraph UNO["Cluster uno"]
+    subgraph UNO["Metadata cluster uno"]
       DS["dataserv x3<br/>metadata + client sessions"]
       GC["gcserv<br/>background reclaim"]
       BS["blockserv<br/>optional block byte plane"]
@@ -61,14 +61,14 @@ flowchart TB
 Read the diagram this way:
 
 - The client contacts the hub **once**, to discover. After that it talks to the owning
-  cluster directly. The hub is not in the data path.
+  metadata cluster directly. The hub is not in the data path.
 - The client reads and writes object bytes **itself**, straight to the backing store. Only
   metadata goes through dataserv. This drives firewall and sizing decisions: the object
   store must be reachable from every client host, not only from the fleet, and dataserv is
   not sized for user byte throughput. Block-backed volumes are the exception; their bytes go
   through blockserv.
-- A region owns exactly one database and one secret store. A cluster owns neither. A
-  cluster is a load partition, not a tenant boundary.
+- A region owns exactly one database and one secret store. A metadata cluster owns neither.
+  A metadata cluster is a load partition, not a tenant boundary.
 - A volume lives in one region on exactly one storage. Its data does not cross a region
   boundary while it is being served.
 
@@ -94,7 +94,7 @@ flowchart LR
     B --> O
   end
 
-  API -.->|"discovery answer:<br/>which cluster owns this volume"| C
+  API -.->|"discovery answer:<br/>which metadata cluster owns this volume"| C
 ```
 
 The two planes use different credentials and never share them:
@@ -127,22 +127,22 @@ sequenceDiagram
 
   OP->>SDK: create account
   OP->>SDK: create region
-  SDK-->>OP: region id, cluster uno auto-created but not ready
-  OP->>SDK: list the region's clusters
-  SDK-->>OP: cluster uno exportId, the UUID the fleet needs
+  SDK-->>OP: region id, metadata cluster uno auto-created but not ready
+  OP->>SDK: list the region's metadata clusters
+  SDK-->>OP: metadata cluster uno exportId, the UUID the fleet needs
 
-  OP->>TF: set region cluster id, make apply
+  OP->>TF: set metadata cluster id, make apply
   TF->>DS: boot dataserv and gcserv
   OP->>TF: make region-bootstrap
   TF->>DS: seed region secrets, fan out service verifiers
   DS->>HUB: register over internal RPC
-  HUB-->>OP: cluster uno ready, nodes healthy
+  HUB-->>OP: metadata cluster uno ready, nodes healthy
 
   OP->>SDK: create storage, volume, access key
   SDK-->>OP: apiKey and apiSecret, returned once
 ```
 
-The two `make apply` calls are not a mistake. The first brings up the hub. The region
+The two `make apply` calls are not a mistake. The first brings up the hub. The metadata
 cluster id does not exist until the hub is running and the region is created, so the region
 fleet can only be configured after that.
 
@@ -158,7 +158,7 @@ sequenceDiagram
   participant S as object store
 
   C->>H: discover, volume access key id
-  H-->>C: owning cluster address set
+  H-->>C: owning metadata cluster address set
   C->>D: open session, encrypted transport
   U->>C: write file
   C->>D: metadata operations
@@ -172,7 +172,7 @@ sequenceDiagram
 
 Three properties that drive deployment decisions:
 
-- Discovery returns the cluster's **client-facing** address. A client inside the same
+- Discovery returns the metadata cluster's **client-facing** address. A client inside the same
   virtual network as the fleet usually cannot reach that address, because most clouds do
   not route an instance's public address back inside the network. Test from outside.
 - The hub is out of the path after discovery, so hub sizing follows admin and discovery
@@ -181,10 +181,10 @@ Three properties that drive deployment decisions:
   every client host needs reachability to that store, and dataserv is sized for metadata
   rate rather than throughput.
 
-## Raft inside a cluster
+## Raft inside a metadata cluster
 
-dataserv nodes in one cluster form a raft quorum. This is where most first-deployment
-failures live.
+dataserv nodes in one metadata cluster form a raft quorum. This is where most
+first-deployment failures live.
 
 ```mermaid
 flowchart LR

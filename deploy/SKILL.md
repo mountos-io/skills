@@ -1,6 +1,6 @@
 ---
 name: deploy
-description: Deploy, verify, and operate a self-hosted mountOS storage system, and mount its volumes. Use for any task that mentions mountOS, appserv/dataserv/gcserv/blockserv, a mountOS hub, region, cluster, storage, volume, or access key; for standing up mountOS on AWS, GCP, or Azure with the mountos-io/deployment Terraform package; for explaining or diagramming the mountOS architecture and how its components interact; for mounting a mountOS volume on Linux, macOS, or Windows, including /etc/fstab and the mount helper; and for diagnosing a deployment that looks healthy but does not work.
+description: Deploy, verify, and operate a self-hosted mountOS storage system, and mount its volumes. Use for any task that mentions mountOS, appserv/dataserv/gcserv/blockserv, a mountOS hub, region, metadata cluster, storage, volume, or access key; for standing up mountOS on AWS, GCP, or Azure with the mountos-io/deployment Terraform package; for explaining or diagramming the mountOS architecture and how its components interact; for mounting a mountOS volume on Linux, macOS, or Windows, including /etc/fstab and the mount helper; and for diagnosing a deployment that looks healthy but does not work.
 version: 1.1.0
 license: Apache-2.0
 ---
@@ -30,7 +30,7 @@ Fetch in this order:
 | 1 | https://mountos.io/skill.md | Entry-point skill: the mental model and the task-to-skill routing table |
 | 2 | https://mountos.io/llms.txt | Topic index: one line per topic, with its URL |
 | 3 | https://mountos.io/skills/deploy.md | Cloud substrate and hub bring-up |
-| 4 | https://mountos.io/skills/provision.md | Account, region, cluster, region services |
+| 4 | https://mountos.io/skills/provision.md | Account, region, metadata cluster, region services |
 | 5 | https://mountos.io/skills/volumes.md | Storages, volumes, access keys, mounting |
 
 Fetch other task skills (`operate.md`, `integrate.md`, `s3.md`, `iceberg.md`, `env.md`) and
@@ -80,13 +80,14 @@ Enough to route correctly. The live documentation is authoritative for the detai
 - An **account** is the tenant. It owns its regions, users, and storages.
 - A **region** belongs to one account and owns one database and one secret store. It holds
   storages, each pointing at an S3-compatible or Azure object store.
-- A **region cluster** partitions volume load inside a region. It shares the region's
+- A **metadata cluster** partitions volume load inside a region. It shares the region's
   database and secret store. `dataserv`, `gcserv`, `blockserv`, and the gateways are
-  cluster-scoped. Creating a region auto-creates its default cluster, named `uno`.
+  metadata-cluster-scoped. Creating a region auto-creates its default metadata cluster,
+  named `uno`.
 - A **volume** lives in one region on exactly one storage. Its data does not cross a region
   boundary at serving time.
-- The client binary is `mountos`. It discovers at the hub, then talks to the owning cluster
-  directly.
+- The client binary is `mountos`. It discovers at the hub, then talks to the owning metadata
+  cluster directly.
 
 ## Route the task
 
@@ -114,11 +115,11 @@ starts. Do not treat "the command exited 0" as the assertion.
    Terraform or systemd. Assertion: the hub answers the Admin API with auth enforced.
 2. **Tenant.** Create the account, then the users. Assertion: the account reads back with
    its id.
-3. **Region.** Create the region, which auto-creates cluster `uno`. Assertion: you can read
-   back the region cluster id, a UUID. You need this value for the next stage.
-4. **Region services.** Put the region cluster id into the deployment configuration and
-   apply again, then seed the region secrets. Assertion: cluster `uno` reports ready, and
-   the node list shows every dataserv and gcserv node healthy.
+3. **Region.** Create the region, which auto-creates metadata cluster `uno`. Assertion: you
+   can read back the metadata cluster id, a UUID. You need this value for the next stage.
+4. **Region services.** Put the metadata cluster id into the deployment configuration and
+   apply again, then seed the region secrets. Assertion: metadata cluster `uno` reports
+   ready, and the node list shows every dataserv and gcserv node healthy.
 5. **Storage and volume.** Register the object store as a storage, create a volume on it,
    then generate a volume access key pair. Assertion: the volume reads back and the key
    pair is returned once.
@@ -152,7 +153,7 @@ and [references/verification.md](references/verification.md).
 ## Verify, do not assume
 
 Several mountOS failure modes produce a service that looks healthy and is functionally
-broken: a single-node cluster that believes it is a quorum, a co-located service that
+broken: a single-node metadata cluster that believes it is a quorum, a co-located service that
 crash-loops while the node still reports healthy, an addressing feature that silently uses
 the wrong address family. After any change to addressing, clustering, or ports, assert the
 specific invariant rather than the general health check. See
@@ -162,7 +163,7 @@ specific invariant rather than the general health check. See
 
 - [references/architecture.md](references/architecture.md): how the components interact,
   with diagrams you can show an operator. Control plane against data plane, the bring-up
-  sequence, the mount and I/O path, raft inside a cluster, and the access surfaces.
+  sequence, the mount and I/O path, raft inside a metadata cluster, and the access surfaces.
 - [references/runbook.md](references/runbook.md): the ordered bring-up, with the commands
   and the hand-off points between stages.
 - [references/verification.md](references/verification.md): what "done" means at each

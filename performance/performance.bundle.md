@@ -1,4 +1,4 @@
-# mountOS performance skill (single-file bundle, version 1.0.1)
+# mountOS performance skill (single-file bundle, version 1.0.3)
 
 This file is the entire skill in one document: the entry point followed by every
 reference it links to. It exists for agents that cannot follow relative links or read

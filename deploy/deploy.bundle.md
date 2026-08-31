@@ -34,7 +34,7 @@ Fetch in this order:
 | 1 | https://mountos.io/skill.md | Entry-point skill: the mental model and the task-to-skill routing table |
 | 2 | https://mountos.io/llms.txt | Topic index: one line per topic, with its URL |
 | 3 | https://mountos.io/skills/deploy.md | Cloud substrate and hub bring-up |
-| 4 | https://mountos.io/skills/provision.md | Account, region, cluster, region services |
+| 4 | https://mountos.io/skills/provision.md | Account, region, metadata cluster, region services |
 | 5 | https://mountos.io/skills/volumes.md | Storages, volumes, access keys, mounting |
 
 Fetch other task skills (`operate.md`, `integrate.md`, `s3.md`, `iceberg.md`, `env.md`) and
@@ -84,13 +84,14 @@ Enough to route correctly. The live documentation is authoritative for the detai
 - An **account** is the tenant. It owns its regions, users, and storages.
 - A **region** belongs to one account and owns one database and one secret store. It holds
   storages, each pointing at an S3-compatible or Azure object store.
-- A **region cluster** partitions volume load inside a region. It shares the region's
+- A **metadata cluster** partitions volume load inside a region. It shares the region's
   database and secret store. `dataserv`, `gcserv`, `blockserv`, and the gateways are
-  cluster-scoped. Creating a region auto-creates its default cluster, named `uno`.
+  metadata-cluster-scoped. Creating a region auto-creates its default metadata cluster,
+  named `uno`.
 - A **volume** lives in one region on exactly one storage. Its data does not cross a region
   boundary at serving time.
-- The client binary is `mountos`. It discovers at the hub, then talks to the owning cluster
-  directly.
+- The client binary is `mountos`. It discovers at the hub, then talks to the owning metadata
+  cluster directly.
 
 ## Route the task
 
@@ -118,11 +119,11 @@ starts. Do not treat "the command exited 0" as the assertion.
    Terraform or systemd. Assertion: the hub answers the Admin API with auth enforced.
 2. **Tenant.** Create the account, then the users. Assertion: the account reads back with
    its id.
-3. **Region.** Create the region, which auto-creates cluster `uno`. Assertion: you can read
-   back the region cluster id, a UUID. You need this value for the next stage.
-4. **Region services.** Put the region cluster id into the deployment configuration and
-   apply again, then seed the region secrets. Assertion: cluster `uno` reports ready, and
-   the node list shows every dataserv and gcserv node healthy.
+3. **Region.** Create the region, which auto-creates metadata cluster `uno`. Assertion: you
+   can read back the metadata cluster id, a UUID. You need this value for the next stage.
+4. **Region services.** Put the metadata cluster id into the deployment configuration and
+   apply again, then seed the region secrets. Assertion: metadata cluster `uno` reports
+   ready, and the node list shows every dataserv and gcserv node healthy.
 5. **Storage and volume.** Register the object store as a storage, create a volume on it,
    then generate a volume access key pair. Assertion: the volume reads back and the key
    pair is returned once.
@@ -156,7 +157,7 @@ and [references/verification.md](#reference-verification).
 ## Verify, do not assume
 
 Several mountOS failure modes produce a service that looks healthy and is functionally
-broken: a single-node cluster that believes it is a quorum, a co-located service that
+broken: a single-node metadata cluster that believes it is a quorum, a co-located service that
 crash-loops while the node still reports healthy, an addressing feature that silently uses
 the wrong address family. After any change to addressing, clustering, or ports, assert the
 specific invariant rather than the general health check. See
@@ -166,7 +167,7 @@ specific invariant rather than the general health check. See
 
 - [references/architecture.md](#reference-architecture): how the components interact,
   with diagrams you can show an operator. Control plane against data plane, the bring-up
-  sequence, the mount and I/O path, raft inside a cluster, and the access surfaces.
+  sequence, the mount and I/O path, raft inside a metadata cluster, and the access surfaces.
 - [references/runbook.md](#reference-runbook): the ordered bring-up, with the commands
   and the hand-off points between stages.
 - [references/verification.md](#reference-verification): what "done" means at each
@@ -203,8 +204,8 @@ firewall rule.
 
 ### Topology
 
-One hub serves the whole deployment. Regions sit under an account. Clusters partition load
-inside a region.
+One hub serves the whole deployment. Regions sit under an account. Metadata clusters
+partition load inside a region.
 
 ```mermaid
 flowchart TB
@@ -217,7 +218,7 @@ flowchart TB
   subgraph REGION["Region, one database and one secret store"]
     REGIONDB[("region database")]
     REGIONVAULT[["region secret store"]]
-    subgraph UNO["Cluster uno"]
+    subgraph UNO["Metadata cluster uno"]
       DS["dataserv x3<br/>metadata + client sessions"]
       GC["gcserv<br/>background reclaim"]
       BS["blockserv<br/>optional block byte plane"]
@@ -251,14 +252,14 @@ flowchart TB
 Read the diagram this way:
 
 - The client contacts the hub **once**, to discover. After that it talks to the owning
-  cluster directly. The hub is not in the data path.
+  metadata cluster directly. The hub is not in the data path.
 - The client reads and writes object bytes **itself**, straight to the backing store. Only
   metadata goes through dataserv. This drives firewall and sizing decisions: the object
   store must be reachable from every client host, not only from the fleet, and dataserv is
   not sized for user byte throughput. Block-backed volumes are the exception; their bytes go
   through blockserv.
-- A region owns exactly one database and one secret store. A cluster owns neither. A
-  cluster is a load partition, not a tenant boundary.
+- A region owns exactly one database and one secret store. A metadata cluster owns neither.
+  A metadata cluster is a load partition, not a tenant boundary.
 - A volume lives in one region on exactly one storage. Its data does not cross a region
   boundary while it is being served.
 
@@ -284,7 +285,7 @@ flowchart LR
     B --> O
   end
 
-  API -.->|"discovery answer:<br/>which cluster owns this volume"| C
+  API -.->|"discovery answer:<br/>which metadata cluster owns this volume"| C
 ```
 
 The two planes use different credentials and never share them:
@@ -317,22 +318,22 @@ sequenceDiagram
 
   OP->>SDK: create account
   OP->>SDK: create region
-  SDK-->>OP: region id, cluster uno auto-created but not ready
-  OP->>SDK: list the region's clusters
-  SDK-->>OP: cluster uno exportId, the UUID the fleet needs
+  SDK-->>OP: region id, metadata cluster uno auto-created but not ready
+  OP->>SDK: list the region's metadata clusters
+  SDK-->>OP: metadata cluster uno exportId, the UUID the fleet needs
 
-  OP->>TF: set region cluster id, make apply
+  OP->>TF: set metadata cluster id, make apply
   TF->>DS: boot dataserv and gcserv
   OP->>TF: make region-bootstrap
   TF->>DS: seed region secrets, fan out service verifiers
   DS->>HUB: register over internal RPC
-  HUB-->>OP: cluster uno ready, nodes healthy
+  HUB-->>OP: metadata cluster uno ready, nodes healthy
 
   OP->>SDK: create storage, volume, access key
   SDK-->>OP: apiKey and apiSecret, returned once
 ```
 
-The two `make apply` calls are not a mistake. The first brings up the hub. The region
+The two `make apply` calls are not a mistake. The first brings up the hub. The metadata
 cluster id does not exist until the hub is running and the region is created, so the region
 fleet can only be configured after that.
 
@@ -348,7 +349,7 @@ sequenceDiagram
   participant S as object store
 
   C->>H: discover, volume access key id
-  H-->>C: owning cluster address set
+  H-->>C: owning metadata cluster address set
   C->>D: open session, encrypted transport
   U->>C: write file
   C->>D: metadata operations
@@ -362,7 +363,7 @@ sequenceDiagram
 
 Three properties that drive deployment decisions:
 
-- Discovery returns the cluster's **client-facing** address. A client inside the same
+- Discovery returns the metadata cluster's **client-facing** address. A client inside the same
   virtual network as the fleet usually cannot reach that address, because most clouds do
   not route an instance's public address back inside the network. Test from outside.
 - The hub is out of the path after discovery, so hub sizing follows admin and discovery
@@ -371,10 +372,10 @@ Three properties that drive deployment decisions:
   every client host needs reachability to that store, and dataserv is sized for metadata
   rate rather than throughput.
 
-### Raft inside a cluster
+### Raft inside a metadata cluster
 
-dataserv nodes in one cluster form a raft quorum. This is where most first-deployment
-failures live.
+dataserv nodes in one metadata cluster form a raft quorum. This is where most
+first-deployment failures live.
 
 ```mermaid
 flowchart LR
@@ -766,18 +767,18 @@ lapses. Only `role=user` needs an existing account user, resolved by `username` 
 
 ### Stage 3: region
 
-Create the region on the hub. This auto-creates its default cluster, named `uno`.
+Create the region on the hub. This auto-creates its default metadata cluster, named `uno`.
 
-Read back the region cluster id. It is a UUID and you need it for stage 4.
+Read back the metadata cluster id. It is a UUID and you need it for stage 4.
 
-**Assertion:** the region reads back, and you hold its cluster UUID.
+**Assertion:** the region reads back, and you hold its metadata cluster UUID.
 
-Cluster `uno` is **not** ready yet. It becomes ready when the first cluster-scoped service
-registers into it. That happens in stage 4.
+Metadata cluster `uno` is **not** ready yet. It becomes ready when the first
+metadata-cluster-scoped service registers into it. That happens in stage 4.
 
 ### Stage 4: region services
 
-Put the region cluster id into the Terraform variables, along with the dataserv count, the
+Put the metadata cluster id into the Terraform variables, along with the dataserv count, the
 arena size, and the region database and secret-store choices. Then:
 
 ```
@@ -797,7 +798,7 @@ Decisions in this stage:
 - **gcserv co-location.** By default gcserv runs on the dataserv nodes. It needs its own
   HTTP port and its own RPC port. See [pitfalls.md](#reference-pitfalls), item 3.
 
-**Assertion:** cluster `uno` reports ready, the node list shows every dataserv and gcserv
+**Assertion:** metadata cluster `uno` reports ready, the node list shows every dataserv and gcserv
 node healthy at the expected version, and exactly one dataserv node is the raft leader with
 the other nodes joined to it. A single-node "quorum" with the others looping on a join
 error is a real failure. See [verification.md](#reference-verification).
@@ -823,7 +824,7 @@ instance group, so one apply replaces every changed member at the same time and 
 mesh goes down together. Roll them one at a time instead, keeping the others serving. The
 deployment package ships `make block-roll` for exactly this.
 
-**Assertion:** the volume reads back with the expected region, cluster, and storage.
+**Assertion:** the volume reads back with the expected region, metadata cluster, and storage.
 
 ### Stage 6: mount
 
@@ -837,7 +838,7 @@ Install one package per invocation. The installer honors only the last `--pkg` f
 given several, with no error.
 
 Mount from a machine that is **genuinely outside** the deployment network. Discovery hands
-the client the cluster's public address, and most clouds do not route an instance's public
+the client the metadata cluster's public address, and most clouds do not route an instance's public
 address back to a machine inside the same virtual network. A client placed inside the
 deployment network therefore tests a path that no real user takes, and it can fail for a
 reason that has nothing to do with the deployment being correct.
@@ -890,7 +891,7 @@ in the process of checking.
 - A signed admin call returns data.
 - The service log shows the database connection verified and the secret store initialised
   with the expected provider.
-- The hub's own reserved region and cluster appear as self-registered.
+- The hub's own reserved region and metadata cluster appear as self-registered.
 
 Failure to watch for: the service starts, then fails to read its secrets and exits on
 missing configuration. If a resource prefix is in use, the secret names the service reads
@@ -898,14 +899,14 @@ must carry the same prefix that the infrastructure created.
 
 ### Region services are up
 
-**Invariant:** every node registered, and the cluster has a real quorum.
+**Invariant:** every node registered, and the metadata cluster has a real quorum.
 
-- The cluster reports ready.
+- The metadata cluster reports ready.
 - The node list shows every dataserv node **and** every gcserv node, healthy, at the version
   you expect. A missing gcserv is the port collision in [pitfalls.md](#reference-pitfalls) item 3.
 - Exactly one dataserv node is the leader, and the others are joined to it. One node
-  claiming leadership while the others loop on a join error is a single-node cluster
-  pretending to be a quorum.
+  claiming leadership while the others loop on a join error is a single-node metadata
+  cluster pretending to be a quorum.
 - The advertised addresses are **two distinct addresses** per node, one public and one
   private, and the raft peer address is the private one. One address in both roles is
   [pitfalls.md](#reference-pitfalls) item 1.
@@ -919,10 +920,10 @@ Give a cold fleet at least ten minutes before you diagnose a join problem. See
 
 ### Volume is usable
 
-**Invariant:** the volume reads back with the region, cluster, and storage you intended, and
-a key pair was issued.
+**Invariant:** the volume reads back with the region, metadata cluster, and storage you
+intended, and a key pair was issued.
 
-- Read the volume back by id and check its region, cluster, and storage.
+- Read the volume back by id and check its region, metadata cluster, and storage.
 - The generate call returned a key pair. Note whether it reported evicted keys; if it did,
   anything caching an older pair for that user must be updated.
 

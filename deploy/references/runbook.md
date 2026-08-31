@@ -93,18 +93,18 @@ lapses. Only `role=user` needs an existing account user, resolved by `username` 
 
 ## Stage 3: region
 
-Create the region on the hub. This auto-creates its default cluster, named `uno`.
+Create the region on the hub. This auto-creates its default metadata cluster, named `uno`.
 
-Read back the region cluster id. It is a UUID and you need it for stage 4.
+Read back the metadata cluster id. It is a UUID and you need it for stage 4.
 
-**Assertion:** the region reads back, and you hold its cluster UUID.
+**Assertion:** the region reads back, and you hold its metadata cluster UUID.
 
-Cluster `uno` is **not** ready yet. It becomes ready when the first cluster-scoped service
-registers into it. That happens in stage 4.
+Metadata cluster `uno` is **not** ready yet. It becomes ready when the first
+metadata-cluster-scoped service registers into it. That happens in stage 4.
 
 ## Stage 4: region services
 
-Put the region cluster id into the Terraform variables, along with the dataserv count, the
+Put the metadata cluster id into the Terraform variables, along with the dataserv count, the
 arena size, and the region database and secret-store choices. Then:
 
 ```
@@ -124,7 +124,7 @@ Decisions in this stage:
 - **gcserv co-location.** By default gcserv runs on the dataserv nodes. It needs its own
   HTTP port and its own RPC port. See [pitfalls.md](pitfalls.md), item 3.
 
-**Assertion:** cluster `uno` reports ready, the node list shows every dataserv and gcserv
+**Assertion:** metadata cluster `uno` reports ready, the node list shows every dataserv and gcserv
 node healthy at the expected version, and exactly one dataserv node is the raft leader with
 the other nodes joined to it. A single-node "quorum" with the others looping on a join
 error is a real failure. See [verification.md](verification.md).
@@ -150,7 +150,7 @@ instance group, so one apply replaces every changed member at the same time and 
 mesh goes down together. Roll them one at a time instead, keeping the others serving. The
 deployment package ships `make block-roll` for exactly this.
 
-**Assertion:** the volume reads back with the expected region, cluster, and storage.
+**Assertion:** the volume reads back with the expected region, metadata cluster, and storage.
 
 ## Stage 6: mount
 
@@ -164,7 +164,7 @@ Install one package per invocation. The installer honors only the last `--pkg` f
 given several, with no error.
 
 Mount from a machine that is **genuinely outside** the deployment network. Discovery hands
-the client the cluster's public address, and most clouds do not route an instance's public
+the client the metadata cluster's public address, and most clouds do not route an instance's public
 address back to a machine inside the same virtual network. A client placed inside the
 deployment network therefore tests a path that no real user takes, and it can fail for a
 reason that has nothing to do with the deployment being correct.
