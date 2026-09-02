@@ -11,6 +11,16 @@ The skill loads current documentation from https://mountos.io on every use, so i
 mountOS releases without a release here. A release here means the operational guidance
 changed.
 
+## 1.1.1
+
+- Corrected a stale claim that a block storage is an active-active mesh of one to three
+  members. A block storage is a fleet of copysets, and every copyset is a fixed
+  two-server pair.
+- Removed internal replication-mechanism language (named consensus algorithm,
+  leader-election detail) from the architecture, pitfalls, verification, and runbook
+  references, keeping only the operational facts an operator needs: real ports, env
+  vars, and the exact troubleshooting log lines to search for.
+
 ## 1.1.0
 
 - Stage 2 (tenant) now notes that admin-level dashboard access (`superadmin`, `l1admin`,

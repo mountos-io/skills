@@ -5,7 +5,7 @@ attaches. The authoritative source is https://mountos.io/ai/topics/architecture.
 https://mountos.io/ai/topics/components.md. Fetch those for the current detail. The
 diagrams here are the shape you can draw for an operator without reading the full corpus.
 
-Ports named below are the defaults. `APP_PORT` defaults to 6464, the raft port to
+Ports named below are the defaults. `APP_PORT` defaults to 6464, the replication port to
 `APP_PORT+1`, and the peer RPC port to `APP_PORT+2`. `BLOCK_PORT` defaults to 9100 and peer
 replication binds `BLOCK_PORT+1`. The hub's internal RPC port is set by the deployment
 package. Confirm any port against https://mountos.io/skills/env.md before you put it in a
@@ -181,23 +181,24 @@ Three properties that drive deployment decisions:
   every client host needs reachability to that store, and dataserv is sized for metadata
   rate rather than throughput.
 
-## Raft inside a metadata cluster
+## Replication inside a metadata cluster
 
-dataserv nodes in one metadata cluster form a raft quorum. This is where most
+dataserv nodes in one metadata cluster replicate for fault tolerance. This is where most
 first-deployment failures live.
 
 ```mermaid
 flowchart LR
-  N1["dataserv A"] <-->|"raft, private address, APP_PORT+1"| N2["dataserv B"]
-  N2 <-->|"raft"| N3["dataserv C"]
-  N1 <-->|"raft"| N3
+  N1["dataserv A"] <-->|"replication, private address, APP_PORT+1"| N2["dataserv B"]
+  N2 <-->|"replication"| N3["dataserv C"]
+  N1 <-->|"replication"| N3
   N2 -.->|"JOIN handshake, peer RPC, APP_PORT+2"| N1
   N3 -.->|"JOIN handshake, peer RPC"| N1
 ```
 
-The join handshake uses the **peer RPC port**, not the raft port. Open both between region
-services. With only the raft port open, the lowest-id node bootstraps alone and reports
-healthy, and every other node loops on a join error. See [pitfalls.md](pitfalls.md).
+The join handshake uses the **peer RPC port**, not the replication port. Open both between
+region services. With only the replication port open, the cluster never actually forms:
+nodes report healthy individually while every other node loops on a join error. See
+[pitfalls.md](pitfalls.md).
 
 ## Access surfaces on one volume
 

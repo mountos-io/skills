@@ -1,4 +1,4 @@
-# mountOS conformance skill (single-file bundle, version 1.0.2)
+# mountOS conformance skill (single-file bundle, version 1.0.3)
 
 This file is the entire skill in one document: the entry point followed by every
 reference it links to. It exists for agents that cannot follow relative links or read
@@ -31,7 +31,7 @@ wins.
 
 ## The flags both pjdfstest AND LTP need
 
-Both suites, not just one, depend on the mount flags below — a plain, flag-free
+Both suites, not just one, depend on the mount flags below. A plain, flag-free
 mount produces failures in each that look exactly like real defects and are not.
 
 **`--acl` decides whether pjdfstest passes.** `open(path, O_CREAT, 0000)` must
@@ -56,8 +56,8 @@ directly: a `user.*` xattr probe against a plain, flag-free mount fails this way
 LTP's xattr-family tests (`setxattr*`, `getxattr*`, `listxattr*`, `fsetxattr*`,
 POSIX ACL tests) then report as failures rather than the real pass/fail signal
 they're meant to be. `--ioctl` is the matching flag for LTP's ioctl-family tests.
-This is not pjdfstest-specific — it is the identical "flag-shaped failure that
-reads like a defect" trap, one syscall family over.
+This is the same "flag-shaped failure that reads like a defect" trap as the
+pjdfstest one above, one syscall family over.
 
 ## Conformance mount
 

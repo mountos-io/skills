@@ -11,6 +11,12 @@ The skill loads current documentation from https://mountos.io on every use, so i
 mountOS releases without a release here. A release here means the diagnostic guidance
 changed.
 
+## 1.0.1
+
+- Removed internal replication-mechanism language (named consensus algorithm,
+  leader-election detail) from the join-failure diagnostic, keeping the operational
+  fact: which ports to check and the exact log line the failure produces.
+
 ## 1.0.0
 
 First release. Deliberately not a symptom-to-fix catalogue: that lives in the live

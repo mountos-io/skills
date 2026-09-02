@@ -12,9 +12,9 @@ If the two disagree, the live copy wins.
 
 Supplying an explicit advertised address forces explicit-address mode, which mirrors that
 **one** address into **both** the public and the private role. Pin it to a public address
-and every peer, raft included, tries to reach that public address from inside your own
-network. Most clouds do not route an instance's public address back to a machine in the same
-virtual network. The failure is a silent timeout, not an error that names the cause, and the
+and every peer, including the replication peers, tries to reach that public address from
+inside your own network. Most clouds do not route an instance's public address back to a
+machine in the same virtual network. The failure is a silent timeout, not an error that names the cause, and the
 private-address machinery looks broken when it is not.
 
 Leave it unset so the service auto-detects the public and the private address separately
@@ -71,14 +71,14 @@ one invocation per package.
 Symptom: a missing binary and a service that cannot start, with a message that points at the
 service rather than at the install.
 
-## 5. Open the peer RPC port, not only the raft port
+## 5. Open the peer RPC port, not only the replication port
 
-Raft's data plane is one port, but a joining node dials an existing peer's RPC port to ask
-for admission. Allow region service to region service on **both**.
+The replication data plane is one port, but a joining node dials an existing peer's RPC port
+to ask for admission. Allow region service to region service on **both**.
 
-With only the raft port open, the lowest-id node bootstraps alone and every other node loops
-on "no peer accepted join request". You get a single-node quorum that reports healthy per
-node while the cluster has no real consensus.
+With only the replication port open, every other node loops on "no peer accepted join
+request" while the cluster never actually forms. You get a single-node quorum that reports
+healthy per node while the cluster has no real fault tolerance.
 
 ## 6. Client-facing ports are internet-facing by design
 

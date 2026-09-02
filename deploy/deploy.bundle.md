@@ -1,4 +1,4 @@
-# mountOS deploy skill (single-file bundle, version 1.1.0)
+# mountOS deploy skill (single-file bundle, version 1.1.1)
 
 This file is the entire skill in one document: the entry point followed by every
 reference it links to. It exists for agents that cannot follow relative links or read
@@ -167,7 +167,8 @@ specific invariant rather than the general health check. See
 
 - [references/architecture.md](#reference-architecture): how the components interact,
   with diagrams you can show an operator. Control plane against data plane, the bring-up
-  sequence, the mount and I/O path, raft inside a metadata cluster, and the access surfaces.
+  sequence, the mount and I/O path, replication inside a metadata cluster, and the access
+  surfaces.
 - [references/runbook.md](#reference-runbook): the ordered bring-up, with the commands
   and the hand-off points between stages.
 - [references/verification.md](#reference-verification): what "done" means at each
@@ -196,7 +197,7 @@ attaches. The authoritative source is https://mountos.io/ai/topics/architecture.
 https://mountos.io/ai/topics/components.md. Fetch those for the current detail. The
 diagrams here are the shape you can draw for an operator without reading the full corpus.
 
-Ports named below are the defaults. `APP_PORT` defaults to 6464, the raft port to
+Ports named below are the defaults. `APP_PORT` defaults to 6464, the replication port to
 `APP_PORT+1`, and the peer RPC port to `APP_PORT+2`. `BLOCK_PORT` defaults to 9100 and peer
 replication binds `BLOCK_PORT+1`. The hub's internal RPC port is set by the deployment
 package. Confirm any port against https://mountos.io/skills/env.md before you put it in a
@@ -372,23 +373,24 @@ Three properties that drive deployment decisions:
   every client host needs reachability to that store, and dataserv is sized for metadata
   rate rather than throughput.
 
-### Raft inside a metadata cluster
+### Replication inside a metadata cluster
 
-dataserv nodes in one metadata cluster form a raft quorum. This is where most
+dataserv nodes in one metadata cluster replicate for fault tolerance. This is where most
 first-deployment failures live.
 
 ```mermaid
 flowchart LR
-  N1["dataserv A"] <-->|"raft, private address, APP_PORT+1"| N2["dataserv B"]
-  N2 <-->|"raft"| N3["dataserv C"]
-  N1 <-->|"raft"| N3
+  N1["dataserv A"] <-->|"replication, private address, APP_PORT+1"| N2["dataserv B"]
+  N2 <-->|"replication"| N3["dataserv C"]
+  N1 <-->|"replication"| N3
   N2 -.->|"JOIN handshake, peer RPC, APP_PORT+2"| N1
   N3 -.->|"JOIN handshake, peer RPC"| N1
 ```
 
-The join handshake uses the **peer RPC port**, not the raft port. Open both between region
-services. With only the raft port open, the lowest-id node bootstraps alone and reports
-healthy, and every other node loops on a join error. See [pitfalls.md](#reference-pitfalls).
+The join handshake uses the **peer RPC port**, not the replication port. Open both between
+region services. With only the replication port open, the cluster never actually forms:
+nodes report healthy individually while every other node loops on a join error. See
+[pitfalls.md](#reference-pitfalls).
 
 ### Access surfaces on one volume
 
@@ -526,9 +528,9 @@ If the two disagree, the live copy wins.
 
 Supplying an explicit advertised address forces explicit-address mode, which mirrors that
 **one** address into **both** the public and the private role. Pin it to a public address
-and every peer, raft included, tries to reach that public address from inside your own
-network. Most clouds do not route an instance's public address back to a machine in the same
-virtual network. The failure is a silent timeout, not an error that names the cause, and the
+and every peer, including the replication peers, tries to reach that public address from
+inside your own network. Most clouds do not route an instance's public address back to a
+machine in the same virtual network. The failure is a silent timeout, not an error that names the cause, and the
 private-address machinery looks broken when it is not.
 
 Leave it unset so the service auto-detects the public and the private address separately
@@ -585,14 +587,14 @@ one invocation per package.
 Symptom: a missing binary and a service that cannot start, with a message that points at the
 service rather than at the install.
 
-### 5. Open the peer RPC port, not only the raft port
+### 5. Open the peer RPC port, not only the replication port
 
-Raft's data plane is one port, but a joining node dials an existing peer's RPC port to ask
-for admission. Allow region service to region service on **both**.
+The replication data plane is one port, but a joining node dials an existing peer's RPC port
+to ask for admission. Allow region service to region service on **both**.
 
-With only the raft port open, the lowest-id node bootstraps alone and every other node loops
-on "no peer accepted join request". You get a single-node quorum that reports healthy per
-node while the cluster has no real consensus.
+With only the replication port open, every other node loops on "no peer accepted join
+request" while the cluster never actually forms. You get a single-node quorum that reports
+healthy per node while the cluster has no real fault tolerance.
 
 ### 6. Client-facing ports are internet-facing by design
 
@@ -757,7 +759,7 @@ admin dashboard (https://github.com/mountos-io/mountos-admin-client), prefer tha
 scripting an Admin API user for the operator's own first login: mint a Provider-signed
 sign-in token (EdDSA JWT, `aud=mountos/dashboard`, `role=superadmin`, ~60s TTL) and open
 `<dashboard>/?token=<jwt>`. The dashboard ships a browser tool for exactly this,
-`/tools/generate-login-token` — paste the Provider signing seed into that tab (it stays
+`/tools/generate-login-token`. Paste the Provider signing seed into that tab (it stays
 client-side, never sent anywhere) instead of writing the JWT by hand. It is a manual,
 one-shot bootstrap aid, not a persistent login method; regenerate it whenever the token
 lapses. Only `role=user` needs an existing account user, resolved by `username` and
@@ -799,9 +801,9 @@ Decisions in this stage:
   HTTP port and its own RPC port. See [pitfalls.md](#reference-pitfalls), item 3.
 
 **Assertion:** metadata cluster `uno` reports ready, the node list shows every dataserv and gcserv
-node healthy at the expected version, and exactly one dataserv node is the raft leader with
-the other nodes joined to it. A single-node "quorum" with the others looping on a join
-error is a real failure. See [verification.md](#reference-verification).
+node healthy at the expected version, and exactly one dataserv node is the leader with the
+other nodes joined to it. A single-node "quorum" with the others looping on a join error is
+a real failure. See [verification.md](#reference-verification).
 
 ### Stage 5: storage and volume
 
@@ -818,10 +820,10 @@ For block-backed volumes, provision a block storage first, which yields member i
 enable blockserv in the Terraform variables with those members. Skip blockserv entirely for
 object-backed volumes.
 
-A block storage is an active-active mesh of one to three members. Once it is serving, do
-**not** upgrade it with a plain apply: the members are individual machines rather than an
-instance group, so one apply replaces every changed member at the same time and the whole
-mesh goes down together. Roll them one at a time instead, keeping the others serving. The
+A block storage is a fleet of copysets, and every copyset is a fixed two-server pair. Once
+it is serving, do **not** upgrade it with a plain apply: the members are individual machines
+rather than an instance group, so one apply replaces both members at the same time and the
+pair goes down together. Roll them one at a time instead, keeping the other serving. The
 deployment package ships `make block-roll` for exactly this.
 
 **Assertion:** the volume reads back with the expected region, metadata cluster, and storage.
@@ -908,8 +910,8 @@ must carry the same prefix that the infrastructure created.
   claiming leadership while the others loop on a join error is a single-node metadata
   cluster pretending to be a quorum.
 - The advertised addresses are **two distinct addresses** per node, one public and one
-  private, and the raft peer address is the private one. One address in both roles is
-  [pitfalls.md](#reference-pitfalls) item 1.
+  private, and the peer address used for replication is the private one. One address in
+  both roles is [pitfalls.md](#reference-pitfalls) item 1.
 - Restart counters are flat. A steadily climbing counter on a healthy-looking node is a
   crash loop.
 - The arena size in the service's own startup log matches what you configured. Do not trust
@@ -945,7 +947,7 @@ Re-assert the specific thing you changed. Concretely:
 
 | You changed | Assert |
 | --- | --- |
-| An advertised address | Two distinct addresses discovered per node, and raft using the private one |
+| An advertised address | Two distinct addresses discovered per node, and replication using the private one |
 | A firewall rule | The specific port is reachable between the specific pair of hosts, tested directly |
 | A service port | The service is listening on the new port **and** its derived RPC port is where the firewall expects it |
 | The node count | Leader elected, and every node joined, not just every node healthy |

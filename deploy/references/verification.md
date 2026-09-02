@@ -32,8 +32,8 @@ must carry the same prefix that the infrastructure created.
   claiming leadership while the others loop on a join error is a single-node metadata
   cluster pretending to be a quorum.
 - The advertised addresses are **two distinct addresses** per node, one public and one
-  private, and the raft peer address is the private one. One address in both roles is
-  [pitfalls.md](pitfalls.md) item 1.
+  private, and the peer address used for replication is the private one. One address in
+  both roles is [pitfalls.md](pitfalls.md) item 1.
 - Restart counters are flat. A steadily climbing counter on a healthy-looking node is a
   crash loop.
 - The arena size in the service's own startup log matches what you configured. Do not trust
@@ -69,7 +69,7 @@ Re-assert the specific thing you changed. Concretely:
 
 | You changed | Assert |
 | --- | --- |
-| An advertised address | Two distinct addresses discovered per node, and raft using the private one |
+| An advertised address | Two distinct addresses discovered per node, and replication using the private one |
 | A firewall rule | The specific port is reachable between the specific pair of hosts, tested directly |
 | A service port | The service is listening on the new port **and** its derived RPC port is where the firewall expects it |
 | The node count | Leader elected, and every node joined, not just every node healthy |

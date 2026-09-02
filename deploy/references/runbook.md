@@ -83,7 +83,7 @@ admin dashboard (https://github.com/mountos-io/mountos-admin-client), prefer tha
 scripting an Admin API user for the operator's own first login: mint a Provider-signed
 sign-in token (EdDSA JWT, `aud=mountos/dashboard`, `role=superadmin`, ~60s TTL) and open
 `<dashboard>/?token=<jwt>`. The dashboard ships a browser tool for exactly this,
-`/tools/generate-login-token` — paste the Provider signing seed into that tab (it stays
+`/tools/generate-login-token`. Paste the Provider signing seed into that tab (it stays
 client-side, never sent anywhere) instead of writing the JWT by hand. It is a manual,
 one-shot bootstrap aid, not a persistent login method; regenerate it whenever the token
 lapses. Only `role=user` needs an existing account user, resolved by `username` and
@@ -125,9 +125,9 @@ Decisions in this stage:
   HTTP port and its own RPC port. See [pitfalls.md](pitfalls.md), item 3.
 
 **Assertion:** metadata cluster `uno` reports ready, the node list shows every dataserv and gcserv
-node healthy at the expected version, and exactly one dataserv node is the raft leader with
-the other nodes joined to it. A single-node "quorum" with the others looping on a join
-error is a real failure. See [verification.md](verification.md).
+node healthy at the expected version, and exactly one dataserv node is the leader with the
+other nodes joined to it. A single-node "quorum" with the others looping on a join error is
+a real failure. See [verification.md](verification.md).
 
 ## Stage 5: storage and volume
 
@@ -144,10 +144,10 @@ For block-backed volumes, provision a block storage first, which yields member i
 enable blockserv in the Terraform variables with those members. Skip blockserv entirely for
 object-backed volumes.
 
-A block storage is an active-active mesh of one to three members. Once it is serving, do
-**not** upgrade it with a plain apply: the members are individual machines rather than an
-instance group, so one apply replaces every changed member at the same time and the whole
-mesh goes down together. Roll them one at a time instead, keeping the others serving. The
+A block storage is a fleet of copysets, and every copyset is a fixed two-server pair. Once
+it is serving, do **not** upgrade it with a plain apply: the members are individual machines
+rather than an instance group, so one apply replaces both members at the same time and the
+pair goes down together. Roll them one at a time instead, keeping the other serving. The
 deployment package ships `make block-roll` for exactly this.
 
 **Assertion:** the volume reads back with the expected region, metadata cluster, and storage.

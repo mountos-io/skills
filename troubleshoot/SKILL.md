@@ -1,7 +1,7 @@
 ---
 name: troubleshoot
 description: Diagnose a mountOS deployment that is failing or behaving wrongly. Use when a mount will not work, a service will not register or keeps restarting, a cluster will not reach quorum, a gateway rejects requests, a node reports healthy but serves nothing, performance dropped, or an operator says "it worked yesterday". Covers what evidence to gather in what order, which checks are too weak to prove anything, and the mountOS failure modes that report healthy while the system is broken.
-version: 1.0.0
+version: 1.0.1
 license: Apache-2.0
 ---
 

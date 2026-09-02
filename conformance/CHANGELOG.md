@@ -7,6 +7,11 @@ Versioning is semantic, applied to the skill itself, not to mountOS.
 - **Minor**: new sections, new suites, or materially expanded guidance.
 - **Patch**: corrections, clarifications, and link fixes.
 
+## 1.0.3
+
+- Removed an em-dash sentence break and a negative-disclaimer sentence, restated as
+  direct positive statements. No guidance change.
+
 ## 1.0.2
 
 - Clarified that `--xattr`/`--ioctl`, not just `--acl`, are load-bearing: without

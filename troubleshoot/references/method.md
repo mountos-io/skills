@@ -56,9 +56,9 @@ requests, and has no real consensus.
 
 Two failures produce nearly identical logs:
 
-- **A firewall gap.** The join handshake and the raft data plane use *different* ports. With
-  only the data-plane port open, the lowest-id node bootstraps alone and every other node
-  loops forever on a join error. Test the peer RPC port directly between two nodes.
+- **A firewall gap.** The join handshake and the replication data plane use *different*
+  ports. With only the data-plane port open, every other node loops forever on a join error
+  while the cluster never forms. Test the peer RPC port directly between two nodes.
 - **Normal cold-start delay.** Records for terminated nodes linger, and a fresh node waits
   for those phantom peers to age out. This self-corrects in about six minutes on a three-node
   region.

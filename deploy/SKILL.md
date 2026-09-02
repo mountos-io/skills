@@ -1,7 +1,7 @@
 ---
 name: deploy
 description: Deploy, verify, and operate a self-hosted mountOS storage system, and mount its volumes. Use for any task that mentions mountOS, appserv/dataserv/gcserv/blockserv, a mountOS hub, region, metadata cluster, storage, volume, or access key; for standing up mountOS on AWS, GCP, or Azure with the mountos-io/deployment Terraform package; for explaining or diagramming the mountOS architecture and how its components interact; for mounting a mountOS volume on Linux, macOS, or Windows, including /etc/fstab and the mount helper; and for diagnosing a deployment that looks healthy but does not work.
-version: 1.1.0
+version: 1.1.1
 license: Apache-2.0
 ---
 
@@ -163,7 +163,8 @@ specific invariant rather than the general health check. See
 
 - [references/architecture.md](references/architecture.md): how the components interact,
   with diagrams you can show an operator. Control plane against data plane, the bring-up
-  sequence, the mount and I/O path, raft inside a metadata cluster, and the access surfaces.
+  sequence, the mount and I/O path, replication inside a metadata cluster, and the access
+  surfaces.
 - [references/runbook.md](references/runbook.md): the ordered bring-up, with the commands
   and the hand-off points between stages.
 - [references/verification.md](references/verification.md): what "done" means at each
