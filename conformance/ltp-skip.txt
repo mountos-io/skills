@@ -394,6 +394,8 @@ ioctl_loop04
 ioctl_loop05
 ioctl_loop06
 ioctl_loop07
+ioctl_pidfd05
+ioctl_pidfd06
 ioctl_sg01
 iogen01
 ioprio_set03

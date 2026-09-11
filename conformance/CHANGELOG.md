@@ -7,6 +7,16 @@ Versioning is semantic, applied to the skill itself, not to mountOS.
 - **Minor**: new sections, new suites, or materially expanded guidance.
 - **Patch**: corrections, clarifications, and link fixes.
 
+## 1.0.4
+
+- `ltp-skip.txt`: added `ioctl_pidfd05`/`ioctl_pidfd06`. Both call `ioctl()`
+  on a pidfd (a process file descriptor), not a file in the mount, so
+  neither reaches the filesystem under test. Confirmed reproducible
+  standalone against a Docker Desktop arm64 kernel: `ioctl_pidfd05` gets
+  ENOTTY instead of EINVAL for `PIDFD_GET_INFO_SHORT`, `ioctl_pidfd06`
+  gets EREMOTE instead of ESRCH for `PIDFD_GET_INFO`. A pidfd ioctl gap
+  in that kernel, not filesystem behavior.
+
 ## 1.0.3
 
 - Removed an em-dash sentence break and a negative-disclaimer sentence, restated as
