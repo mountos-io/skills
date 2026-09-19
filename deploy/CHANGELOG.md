@@ -11,6 +11,13 @@ The skill loads current documentation from https://mountos.io on every use, so i
 mountOS releases without a release here. A release here means the operational guidance
 changed.
 
+## 1.2.0
+
+- Stage 2 (tenant) now documents the mountOS admin dashboard's native login extension as
+  an alternative to the one-shot Provider-signed sign-in token for the operator's own
+  first login: a real username/password login with mandatory two-factor authentication,
+  seeded once with `make seed-admin`.
+
 ## 1.1.1
 
 - Corrected a stale claim that a block storage is an active-active mesh of one to three

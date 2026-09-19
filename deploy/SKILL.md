@@ -1,7 +1,7 @@
 ---
 name: deploy
 description: Deploy, verify, and operate a self-hosted mountOS storage system, and mount its volumes. Use for any task that mentions mountOS, appserv/dataserv/gcserv/blockserv, a mountOS hub, region, metadata cluster, storage, volume, or access key; for standing up mountOS on AWS, GCP, or Azure with the mountos-io/deployment Terraform package; for explaining or diagramming the mountOS architecture and how its components interact; for mounting a mountOS volume on Linux, macOS, or Windows, including /etc/fstab and the mount helper; and for diagnosing a deployment that looks healthy but does not work.
-version: 1.1.1
+version: 1.2.0
 license: Apache-2.0
 ---
 

@@ -1,4 +1,4 @@
-# mountOS deploy skill (single-file bundle, version 1.1.1)
+# mountOS deploy skill (single-file bundle, version 1.2.0)
 
 This file is the entire skill in one document: the entry point followed by every
 reference it links to. It exists for agents that cannot follow relative links or read
@@ -764,6 +764,15 @@ client-side, never sent anywhere) instead of writing the JWT by hand. It is a ma
 one-shot bootstrap aid, not a persistent login method; regenerate it whenever the token
 lapses. Only `role=user` needs an existing account user, resolved by `username` and
 `account_id`.
+
+An alternative for the dashboard's own first login: turn on its native login extension by
+setting `MOUNTOS_PORTAL_DATABASE_URL` (a dedicated Postgres database, separate from
+mountOS's own database) plus an email provider (`EMAIL_PROVIDER=ses` today). This adds
+invite-based account creation, a real username/password login, and mandatory two-factor
+authentication (an authenticator app with backup codes, or a WebAuthn passkey) for every
+admin role. Seed the first account with `make seed-admin` in the dashboard's own
+repository; it is a persistent login, not a one-shot token, so there is nothing to
+regenerate. See the dashboard's own README for the full variable list.
 
 **Assertion:** the account reads back by id.
 
