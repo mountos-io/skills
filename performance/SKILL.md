@@ -1,7 +1,7 @@
 ---
 name: performance
-description: Measure mountOS performance against a baseline, on a mounted volume on Linux. Covers metadata operation rates with mdtest across directory shapes (flat, deep, wide, shared versus unique parent, phase isolation), and small-file workload timing. Use to size a deployment, to compare two configurations, or to track a regression between releases.
-version: 1.0.3
+description: Measure mountOS performance against a baseline, on a mounted volume on Linux. Covers metadata operation rates with mdtest across directory shapes (flat, deep, wide, shared versus unique parent, phase isolation), and small-file workload timing. Use to size a deployment, to compare two configurations, or to track a regression between releases. Also diagnoses low throughput from a client far from the region: round-trip time, block storage host network tuning, and client buffer limits on Linux and macOS.
+version: 1.1.0
 license: Apache-2.0
 ---
 
@@ -212,3 +212,71 @@ hardware.
 A runtime is therefore only meaningful next to a baseline taken with the same
 storage locality. A number without that context cannot be compared to anything,
 including a later run of itself after someone moves a bucket.
+
+## Symptom: low throughput from a client far from the region
+
+A client near the region is fast, but a client far from it is slow. The distance adds
+round-trip time (RTT). One TCP connection carries at most its window size divided by the
+RTT. For example, a 4 MiB window at 100 ms RTT gives at most about 40 MiB/s. Default
+operating system limits often keep the window small.
+
+Do these checks in this order:
+
+1. **Measure the RTT.** For a block-backed volume, run `ping -c 20 <node address>` from the
+   client to a block storage node. Get the address from the node list in the admin dashboard.
+   For other volumes, the client sends the bytes straight to the object store. Measure the
+   connect time to the endpoint of the storage instead:
+   `curl -so /dev/null -w '%{time_connect}\n' https://<endpoint>`. Record the average. Above a
+   few tens of milliseconds, the TCP limits on both ends set the throughput.
+2. **Check the block storage nodes.** Open each blockserv node in the admin dashboard.
+   "Network Tuned" must show "Yes". If it shows "Below target", the node also raises the
+   "Host network tuning below target" alert. When the congestion control is the cause, the
+   node detail also shows the "System Default" row. In that case, when a per-process override
+   is set, the node detail also shows the "Per-Socket Override" row. Apply the host network
+   tuning from the `deploy` skill's runbook to that host. Skip this step for a volume without
+   block storage.
+3. **Check the client operating system limits.** The client session in the admin dashboard
+   shows a "Network Tuning" section with the client's values. The target is a receive and
+   send buffer maximum of 33554432 bytes (32 MiB) or more. On Linux, the target also
+   includes the `bbr` congestion control, and the section shows the congestion control in one
+   row. On Windows, the section shows "not supported". When a value that the client can read
+   is below the target, the section shows the client as below target. When all values that
+   the client can read meet the target, but the client cannot read one of the target values,
+   the "Tuned" row shows "not reported". Read the values on the client too:
+
+   Linux:
+
+   ```bash
+   sysctl net.ipv4.tcp_rmem net.ipv4.tcp_wmem   # third value is the maximum
+   sysctl net.ipv4.tcp_available_congestion_control
+   sysctl net.ipv4.tcp_allowed_congestion_control
+   ```
+
+   The client checks for `bbr` once, when it starts. It uses `bbr` only when the kernel
+   lists it in `tcp_available_congestion_control`. The client does not load the `tcp_bbr`
+   module itself. When the client runs as a normal user, it can select `bbr` only when
+   `bbr` is in the allowed list. To tune a Linux client:
+
+   1. Load the module: `sudo modprobe tcp_bbr`.
+   2. Keep it loaded after a reboot: `echo tcp_bbr | sudo tee /etc/modules-load.d/bbr.conf`.
+   3. Write the `/etc/sysctl.d/90-mountos-net.conf` file from the host network tuning
+      section of the `deploy` skill's runbook, and add this line to it:
+      `net.ipv4.tcp_allowed_congestion_control = reno cubic bbr`.
+   4. Apply the file: `sudo sysctl --system`.
+   5. Mount again.
+
+   macOS:
+
+   ```bash
+   sysctl kern.ipc.maxsockbuf net.inet.tcp.autorcvbufmax net.inet.tcp.autosndbufmax
+   ```
+
+   Small values here limit each connection. Raise them with `sudo sysctl -w`, for example
+   `kern.ipc.maxsockbuf=67108864`, `net.inet.tcp.autorcvbufmax=33554432`, and
+   `net.inet.tcp.autosndbufmax=33554432`. Keep the two `auto` values at or below
+   `kern.ipc.maxsockbuf`. The target is 33554432 (32 MiB) or more for both `auto` values,
+   and for `kern.ipc.maxsockbuf`. A `sysctl -w` change stays until the next restart. Mount
+   again after the change.
+4. **Measure again.** Run the same sequential read and write test, for example one `fio`
+   job, before and after each change, from the same client. State the RTT next to each
+   result.

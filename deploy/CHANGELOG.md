@@ -11,6 +11,27 @@ The skill loads current documentation from https://mountos.io on every use, so i
 mountOS releases without a release here. A release here means the operational guidance
 changed.
 
+## 1.3.0
+
+- The runbook has a new host network tuning section for block storage nodes: the sysctl
+  file that the provided Terraform writes, how to check it, how to apply it on hosts that the
+  provided Terraform did not make, and what a container host must set.
+- New pitfalls: an image with no `tcp_bbr` module, the send rate that drops after each idle
+  period, and a non-root container that cannot select `bbr` by itself.
+- The runbook states the tuning target (a buffer maximum of 32 MiB or more in `tcp_rmem`
+  and `tcp_wmem`, and `bbr`) and checks those values on each host.
+- Verification now covers the network tuning rows of each blockserv node in the admin
+  dashboard, the "Host network tuning below target" alert, and the "Network Tuning" section
+  of a client session. It also states the rule for a value that a node or a client cannot
+  read. A value that can be read and is below the target shows "Below target" and raises
+  the alert. A missing value, with all other values at the target, shows "Not reported" and
+  raises no alert. The alert message shows the congestion control of the block data
+  connections and the system default as two values. When the congestion control is the
+  cause of "Below target", the node detail also shows the system default. In that case,
+  when a per-process override is set, the node detail also shows that override. On
+  Windows, the client section shows "not supported".
+- The routing table has a row for host network tuning.
+
 ## 1.2.0
 
 - Stage 2 (tenant) now documents the mountOS admin dashboard's native login extension as

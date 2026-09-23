@@ -191,6 +191,76 @@ file, rather than a login-shell command. See https://mountos.io/skills/volumes.m
 confirm the object appears in the backing store. A successful mount command alone is not
 the assertion.
 
+## Host network tuning (block storage nodes)
+
+Clients connect to a region from anywhere, so many clients are far from it. With the
+kernel's default TCP settings, a client far from the region gets low throughput. The
+provided Terraform writes this file on every blockserv host before blockserv starts:
+
+```
+# /etc/sysctl.d/90-mountos-net.conf
+net.core.rmem_max = 67108864
+net.core.wmem_max = 67108864
+net.ipv4.tcp_rmem = 4096 131072 67108864
+net.ipv4.tcp_wmem = 4096 65536 67108864
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_slow_start_after_idle = 0
+```
+
+The startup script also loads the `tcp_bbr` kernel module. It lists the module in
+`/etc/modules-load.d/bbr.conf`, so the module loads again at each boot. blockserv does not
+load the module itself. If the image has no `tcp_bbr` module, the script does not write the
+congestion control line, and the kernel default (`cubic`) stays. The script then writes a
+`WARN:` line to the startup log. See [pitfalls.md](pitfalls.md), item 13.
+
+Each blockserv node compares its settings with a target. The target has two parts.
+
+- The third value of both `net.ipv4.tcp_rmem` and `net.ipv4.tcp_wmem` is 33554432 bytes
+  (32 MiB) or more.
+- The block data connections use `bbr`.
+
+TCP grows the buffer of each connection up to that third value. The file sets 67108864
+(64 MiB).
+
+Check the values on each host:
+
+```
+sysctl net.ipv4.tcp_congestion_control   # expect: bbr
+sysctl net.ipv4.tcp_rmem                 # expect: 4096 131072 67108864
+sysctl net.ipv4.tcp_wmem                 # expect: 4096 65536 67108864
+```
+
+The `fq` queueing discipline applies to a network interface when the kernel makes its queue.
+On the first boot, the primary interface keeps its old queue until the next restart. `bbr`
+does not need `fq` to work.
+
+**Hosts that the provided Terraform did not make.** You must apply the same file yourself.
+Do these steps before you start blockserv. If blockserv already runs, restart it after the
+last step.
+
+1. Write the file above to `/etc/sysctl.d/90-mountos-net.conf`.
+2. Load the module: `modprobe tcp_bbr`.
+3. Keep it loaded after a reboot: `echo tcp_bbr > /etc/modules-load.d/bbr.conf`.
+4. Apply the file: `sysctl --system`.
+5. If `sysctl net.ipv4.tcp_available_congestion_control` does not list `bbr`, remove the
+   congestion control line from the file and run `sysctl --system` again. See
+   [pitfalls.md](pitfalls.md), item 13.
+
+**Container hosts.** The blockserv container runs as a non-root user. A non-root process can
+select `bbr` only when `bbr` is in the host's allowed list. The host, not the container, must
+do these steps:
+
+1. Apply the file above, as for any other host.
+2. Add this line to the same file, then run `sysctl --system` again:
+   `net.ipv4.tcp_allowed_congestion_control = reno cubic bbr`
+3. Start the container after the host applies the file. A new container network copies the
+   congestion control and the `tcp_rmem` and `tcp_wmem` values from the host when it starts.
+4. With a bridge network, also set the two values that a new container network does not copy:
+   `--sysctl net.ipv4.tcp_mtu_probing=1 --sysctl net.ipv4.tcp_slow_start_after_idle=0`.
+   With host networking, the host values apply directly.
+
 ## Day 2
 
 - **Upgrade.** Bump the version in the answers and the Terraform variables, then apply. The

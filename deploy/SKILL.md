@@ -1,7 +1,7 @@
 ---
 name: deploy
 description: Deploy, verify, and operate a self-hosted mountOS storage system, and mount its volumes. Use for any task that mentions mountOS, appserv/dataserv/gcserv/blockserv, a mountOS hub, region, metadata cluster, storage, volume, or access key; for standing up mountOS on AWS, GCP, or Azure with the mountos-io/deployment Terraform package; for explaining or diagramming the mountOS architecture and how its components interact; for mounting a mountOS volume on Linux, macOS, or Windows, including /etc/fstab and the mount helper; and for diagnosing a deployment that looks healthy but does not work.
-version: 1.2.0
+version: 1.3.0
 license: Apache-2.0
 ---
 
@@ -104,6 +104,7 @@ Enough to route correctly. The live documentation is authoritative for the detai
 | Understand what an environment variable does | https://mountos.io/skills/env.md |
 | Work out why a healthy-looking deployment does not work | [references/pitfalls.md](references/pitfalls.md) |
 | Deploy on GCP or Azure rather than AWS | [references/clouds.md](references/clouds.md) |
+| Tune block storage hosts for clients far from the region | [references/runbook.md](references/runbook.md), section "Host network tuning (block storage nodes)" |
 | Prove a stage actually completed | [references/verification.md](references/verification.md) |
 
 ## Deployment spine

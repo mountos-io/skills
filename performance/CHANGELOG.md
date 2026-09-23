@@ -2,6 +2,19 @@
 
 Versioning is semantic, applied to the skill itself, not to mountOS.
 
+## 1.1.0
+
+- New symptom section: low throughput from a client far from the region. It covers how to
+  measure the round-trip time, how to check the network tuning status of the block storage
+  nodes, and how to read and raise the client operating system limits on Linux and macOS
+  to the 32 MiB buffer target. For a volume without block storage, it measures the connect
+  time to the object store endpoint. It states what the client session shows when the client
+  cannot read a value, and that it shows "not supported" on Windows. When the congestion
+  control causes "Below target" on a node, the node detail also shows the system default.
+  In that case, when a per-process override is set, the node detail also shows that
+  override.
+- The skill description covers this symptom.
+
 ## 1.0.3
 
 - `mdtest.sh`: `deep-tree` walked to depth 10 (`-z 10`), deeper than the

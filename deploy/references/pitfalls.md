@@ -152,3 +152,33 @@ the same account is enough.
 
 Parameters to a cloud provider's run-command service are recorded in that provider's audit
 log. Use an interactive session, and have the operator place credentials themselves.
+
+## 13. A minimal image can have no `tcp_bbr` module
+
+Some minimal and custom images do not include the `tcp_bbr` kernel module. The host then
+keeps `cubic`, and blockserv still starts and serves. Nothing fails, but a client far from
+the region gets much less throughput.
+
+Symptom: `sysctl net.ipv4.tcp_available_congestion_control` does not list `bbr`, and the
+startup log has `WARN: tcp_bbr unavailable; TCP congestion control stays cubic`. Use an image
+that includes the module, or install the kernel modules package for the running kernel. See
+the host network tuning section in [runbook.md](runbook.md).
+
+## 14. The kernel default lowers the send rate after each idle period
+
+Clients keep connections open and use them again. With the kernel default
+`net.ipv4.tcp_slow_start_after_idle = 1`, a connection that was idle for a short time starts
+again at a low send rate. On a long-distance link, each transfer after a pause then starts
+slowly. Set it to `0` on block storage hosts and on Linux clients.
+
+Symptom: short bursts after a pause are slow, but a long, continuous copy is fast.
+
+## 15. A non-root container cannot select `bbr` by itself
+
+The blockserv container runs as a non-root user. A non-root process can select `bbr` only
+when `bbr` is in the host's `net.ipv4.tcp_allowed_congestion_control` list. You cannot set
+that list from inside the container. The host must set it, together with the rest of the
+tuning file.
+
+Symptom: the host shows `bbr` as available, but the "Congestion Control" row of the node in
+the admin dashboard shows a different value. See [verification.md](verification.md).

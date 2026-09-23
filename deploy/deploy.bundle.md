@@ -1,4 +1,4 @@
-# mountOS deploy skill (single-file bundle, version 1.2.0)
+# mountOS deploy skill (single-file bundle, version 1.3.0)
 
 This file is the entire skill in one document: the entry point followed by every
 reference it links to. It exists for agents that cannot follow relative links or read
@@ -108,6 +108,7 @@ Enough to route correctly. The live documentation is authoritative for the detai
 | Understand what an environment variable does | https://mountos.io/skills/env.md |
 | Work out why a healthy-looking deployment does not work | [references/pitfalls.md](#reference-pitfalls) |
 | Deploy on GCP or Azure rather than AWS | [references/clouds.md](#reference-clouds) |
+| Tune block storage hosts for clients far from the region | [references/runbook.md](#reference-runbook), section "Host network tuning (block storage nodes)" |
 | Prove a stage actually completed | [references/verification.md](#reference-verification) |
 
 ## Deployment spine
@@ -669,6 +670,36 @@ the same account is enough.
 Parameters to a cloud provider's run-command service are recorded in that provider's audit
 log. Use an interactive session, and have the operator place credentials themselves.
 
+### 13. A minimal image can have no `tcp_bbr` module
+
+Some minimal and custom images do not include the `tcp_bbr` kernel module. The host then
+keeps `cubic`, and blockserv still starts and serves. Nothing fails, but a client far from
+the region gets much less throughput.
+
+Symptom: `sysctl net.ipv4.tcp_available_congestion_control` does not list `bbr`, and the
+startup log has `WARN: tcp_bbr unavailable; TCP congestion control stays cubic`. Use an image
+that includes the module, or install the kernel modules package for the running kernel. See
+the host network tuning section in [runbook.md](#reference-runbook).
+
+### 14. The kernel default lowers the send rate after each idle period
+
+Clients keep connections open and use them again. With the kernel default
+`net.ipv4.tcp_slow_start_after_idle = 1`, a connection that was idle for a short time starts
+again at a low send rate. On a long-distance link, each transfer after a pause then starts
+slowly. Set it to `0` on block storage hosts and on Linux clients.
+
+Symptom: short bursts after a pause are slow, but a long, continuous copy is fast.
+
+### 15. A non-root container cannot select `bbr` by itself
+
+The blockserv container runs as a non-root user. A non-root process can select `bbr` only
+when `bbr` is in the host's `net.ipv4.tcp_allowed_congestion_control` list. You cannot set
+that list from inside the container. The host must set it, together with the rest of the
+tuning file.
+
+Symptom: the host shows `bbr` as available, but the "Congestion Control" row of the node in
+the admin dashboard shows a different value. See [verification.md](#reference-verification).
+
 
 ---
 
@@ -867,6 +898,76 @@ file, rather than a login-shell command. See https://mountos.io/skills/volumes.m
 confirm the object appears in the backing store. A successful mount command alone is not
 the assertion.
 
+### Host network tuning (block storage nodes)
+
+Clients connect to a region from anywhere, so many clients are far from it. With the
+kernel's default TCP settings, a client far from the region gets low throughput. The
+provided Terraform writes this file on every blockserv host before blockserv starts:
+
+```
+## /etc/sysctl.d/90-mountos-net.conf
+net.core.rmem_max = 67108864
+net.core.wmem_max = 67108864
+net.ipv4.tcp_rmem = 4096 131072 67108864
+net.ipv4.tcp_wmem = 4096 65536 67108864
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+net.ipv4.tcp_mtu_probing = 1
+net.ipv4.tcp_slow_start_after_idle = 0
+```
+
+The startup script also loads the `tcp_bbr` kernel module. It lists the module in
+`/etc/modules-load.d/bbr.conf`, so the module loads again at each boot. blockserv does not
+load the module itself. If the image has no `tcp_bbr` module, the script does not write the
+congestion control line, and the kernel default (`cubic`) stays. The script then writes a
+`WARN:` line to the startup log. See [pitfalls.md](#reference-pitfalls), item 13.
+
+Each blockserv node compares its settings with a target. The target has two parts.
+
+- The third value of both `net.ipv4.tcp_rmem` and `net.ipv4.tcp_wmem` is 33554432 bytes
+  (32 MiB) or more.
+- The block data connections use `bbr`.
+
+TCP grows the buffer of each connection up to that third value. The file sets 67108864
+(64 MiB).
+
+Check the values on each host:
+
+```
+sysctl net.ipv4.tcp_congestion_control   # expect: bbr
+sysctl net.ipv4.tcp_rmem                 # expect: 4096 131072 67108864
+sysctl net.ipv4.tcp_wmem                 # expect: 4096 65536 67108864
+```
+
+The `fq` queueing discipline applies to a network interface when the kernel makes its queue.
+On the first boot, the primary interface keeps its old queue until the next restart. `bbr`
+does not need `fq` to work.
+
+**Hosts that the provided Terraform did not make.** You must apply the same file yourself.
+Do these steps before you start blockserv. If blockserv already runs, restart it after the
+last step.
+
+1. Write the file above to `/etc/sysctl.d/90-mountos-net.conf`.
+2. Load the module: `modprobe tcp_bbr`.
+3. Keep it loaded after a reboot: `echo tcp_bbr > /etc/modules-load.d/bbr.conf`.
+4. Apply the file: `sysctl --system`.
+5. If `sysctl net.ipv4.tcp_available_congestion_control` does not list `bbr`, remove the
+   congestion control line from the file and run `sysctl --system` again. See
+   [pitfalls.md](#reference-pitfalls), item 13.
+
+**Container hosts.** The blockserv container runs as a non-root user. A non-root process can
+select `bbr` only when `bbr` is in the host's allowed list. The host, not the container, must
+do these steps:
+
+1. Apply the file above, as for any other host.
+2. Add this line to the same file, then run `sysctl --system` again:
+   `net.ipv4.tcp_allowed_congestion_control = reno cubic bbr`
+3. Start the container after the host applies the file. A new container network copies the
+   congestion control and the `tcp_rmem` and `tcp_wmem` values from the host when it starts.
+4. With a bridge network, also set the two values that a new container network does not copy:
+   `--sysctl net.ipv4.tcp_mtu_probing=1 --sysctl net.ipv4.tcp_slow_start_after_idle=0`.
+   With host networking, the host values apply directly.
+
 ### Day 2
 
 - **Upgrade.** Bump the version in the answers and the Terraform variables, then apply. The
@@ -950,6 +1051,51 @@ intended, and a key pair was issued.
 
 A successful mount command alone proves discovery and auth, not the data path.
 
+### Block storage network tuning
+
+**Invariant:** every blockserv host has the network tuning from the host network tuning
+section in [runbook.md](#reference-runbook).
+
+- Open each blockserv node in the admin dashboard. The node detail shows these rows:
+
+  | Row | Metadata key | Value |
+  | --- | --- | --- |
+  | Network Tuned | `net_tuned` | "Yes" when the host meets the target, "Below target" when it does not |
+  | Congestion Control | `net_cc` | The TCP congestion control that block data connections use, for example `bbr` |
+  | Queue Discipline | `net_qdisc` | The default queueing discipline, for example `fq`. A node in a container with its own network (for example a bridge network) does not show this row |
+  | Receive Buffer Max | `net_rmem_max` | The third value of `net.ipv4.tcp_rmem` (bytes in the metadata). The dashboard shows it in binary units, for example "64 MB" for 67108864 |
+  | Send Buffer Max | `net_wmem_max` | The third value of `net.ipv4.tcp_wmem` (bytes in the metadata). The dashboard shows it in binary units, for example "64 MB" for 67108864 |
+
+  When the node cannot read a value, the node detail does not show that row. The node
+  compares only the values that it can read with the target.
+
+  - When one of these values is below the target, "Network Tuned" shows "Below target",
+    and the node raises the alert.
+  - When all of these values meet the target, but the node cannot read one of the target
+    values, "Network Tuned" shows "Not reported". The node does not raise the alert, and it
+    clears the alert of an earlier start.
+  - When the node can read no value, "Network Tuned" is the only network tuning row in the
+    node detail, and it shows "Not reported".
+  - When the congestion control is the cause of "Below target", the node detail also shows
+    the system default congestion control ("System Default"). In that case, when a
+    per-process override is set, the node detail also shows that override ("Per-Socket
+    Override").
+
+- The target is 33554432 bytes (32 MiB) or more for both buffer maximums, and the `bbr`
+  congestion control. The provided tuning file sets 67108864.
+- "Network Tuned" must show "Yes" on every node. A node below target raises a health alert
+  titled "Host network tuning below target". The alert message shows the current values and
+  the target values. It shows the congestion control of the block data connections and the
+  system default as two values. When a per-process override sets the congestion control, the
+  message names that override as the source of the value. At startup, the node also writes
+  `host network tuning below target` to its log.
+- A client session shows a "Network Tuning" section in the admin dashboard. It shows the
+  client host's settings. Use it when one client is slow and the others are not. On
+  Windows, the section shows "not supported". On other systems, the client uses the same
+  rule as the node. A value that the client can read and that is below the target shows the
+  client as below target. A missing value, with all other values at the target, shows "not
+  reported". On Linux, the section shows the congestion control in one row.
+
 ### After any addressing, clustering, or port change
 
 Re-assert the specific thing you changed. Concretely:
@@ -962,6 +1108,7 @@ Re-assert the specific thing you changed. Concretely:
 | The node count | Leader elected, and every node joined, not just every node healthy |
 | A binary version | The running version reported by the service itself, on every node, not the version you installed |
 | A database pool setting | Total connections across every service against the database's own limit |
+| Host network tuning | "Network Tuned" is "Yes" on every blockserv node (metadata `net_tuned` = `true`), and no "Host network tuning below target" alert is open |
 
 ### Before you report a stage complete
 
