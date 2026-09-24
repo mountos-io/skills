@@ -940,8 +940,12 @@ sysctl net.ipv4.tcp_wmem                 # expect: 4096 65536 67108864
 ```
 
 The `fq` queueing discipline applies to a network interface when the kernel makes its queue.
-On the first boot, the primary interface keeps its old queue until the next restart. `bbr`
-does not need `fq` to work.
+The provided Terraform replaces the queue of the primary interface on the first boot, so `fq`
+applies at once. On a host that you set up yourself, restart the host after you apply the file,
+or replace the queue yourself. If `tc qdisc show dev <interface>` shows `qdisc mq`, run
+`tc qdisc replace dev <interface> root handle 1: mq`. If not, run
+`tc qdisc replace dev <interface> root fq`. Then `tc qdisc show` shows `fq`. `bbr` does not
+need `fq` to work.
 
 **Hosts that the provided Terraform did not make.** You must apply the same file yourself.
 Do these steps before you start blockserv. If blockserv already runs, restart it after the
