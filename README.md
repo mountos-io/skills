@@ -150,7 +150,7 @@ you are the first to run one for real.
 - Terraform deployment package: https://github.com/mountos-io/deployment
 - Admin SDK, TypeScript, Go, and Rust: https://github.com/mountos-io/mountos-admin-sdk
 - Admin dashboard: https://github.com/mountos-io/mountos-admin-client
-- Support: https://mountos.io/support
+- Support: https://mountos.io/contact
 
 ## Contributing
 

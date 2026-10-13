@@ -71,5 +71,5 @@ provider differs enough that a correct AWS pattern can still fail.
 
 Tell the operator plainly that they are the first, agree a small non-production environment
 for the first attempt, and keep a record of what failed and why. That record is worth more
-than the deployment. Feed it back to https://mountos.io/support so the next operator does
+than the deployment. Feed it back to https://mountos.io/contact so the next operator does
 not repeat it.
