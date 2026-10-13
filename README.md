@@ -1,8 +1,8 @@
 # mountOS agent skills
 
 Drop-in skills that teach an AI coding agent how to run [mountOS](https://mountos.io),
-self-hosted POSIX-compatible distributed storage with native macOS, Linux, and Windows
-mounts plus S3 and WebHDFS.
+a cross-platform, forkable, time-traveling distributed filesystem over object storage.
+It mounts natively on macOS, Linux, Windows, and Kubernetes, and serves S3 and WebHDFS.
 
 Each skill is one directory holding a `SKILL.md` and its references.
 
