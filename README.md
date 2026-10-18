@@ -149,6 +149,7 @@ you are the first to run one for real.
 - Install the client and the server binaries: https://mountos.sh/install
 - Terraform deployment package: https://github.com/mountos-io/deployment
 - Admin SDK, TypeScript, Go, and Rust: https://github.com/mountos-io/mountos-admin-sdk
+- Native SDK for the local mount API, Go, TypeScript, and Rust: https://github.com/mountos-io/mountos-native-sdk
 - Admin dashboard: https://github.com/mountos-io/mountos-admin-client
 - Support: https://mountos.io/contact
 

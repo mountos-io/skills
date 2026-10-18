@@ -29,6 +29,10 @@ documentation disagree, the live documentation wins.
 | 2 | https://mountos.io/skills/integrate.md | The data-plane surfaces, with exact flags |
 | 3 | https://mountos.io/ai/topics/admin-sdk.md | The control plane, auth, pagination, errors |
 | 4 | https://github.com/mountos-io/mountos-admin-sdk | `api.md` REST reference, `api.yaml` spec for codegen |
+| 5 | https://mountos.io/ai/topics/native-api.md | The local native filesystem API and its Go, TypeScript, and Rust SDKs (https://github.com/mountos-io/mountos-native-sdk) |
+
+Use the native API (row 5) when a program on the same machine as a mount needs fast metadata,
+batch calls, or change events without FUSE.
 
 Fetch https://mountos.io/skills/s3.md when the workload is S3, and
 https://mountos.io/skills/volumes.md when you need volume, fork, or key semantics.
