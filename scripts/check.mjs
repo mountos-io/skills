@@ -1,4 +1,4 @@
-// Repository self-check. Run with `make check` (needs node or bun, and jsdom + mermaid).
+// Repository self-check. Run with `make check` (needs node or bun, and pele).
 //
 // Verifies, for every skill directory (any directory holding a SKILL.md):
 //   1. every mermaid diagram parses
@@ -37,20 +37,12 @@ const walk = (dir) => {
 walk(root)
 
 // 1. mermaid
-const { JSDOM } = await import('jsdom')
-const dom = new JSDOM('<!doctype html><html><body></body></html>')
-for (const k of ['window', 'document', 'navigator', 'Element', 'Node', 'HTMLElement',
-  'SVGElement', 'NodeFilter', 'getComputedStyle', 'DocumentFragment',
-  'MutationObserver', 'trustedTypes']) {
-  const v = k === 'window' ? dom.window : dom.window[k]
-  if (v !== undefined) globalThis[k] = v
-}
-const mermaid = (await import('mermaid')).default
+const { render } = await import('pele')
 for (const f of docs) {
   const blocks = [...readFileSync(join(root, f), 'utf8').matchAll(/```mermaid\n([\s\S]*?)```/g)]
   for (const [i, m] of blocks.entries()) {
     try {
-      await mermaid.parse(m[1])
+      render(m[1])
       pass(`diagram ${f} #${i + 1}`)
     } catch (e) {
       fail(`diagram ${f} #${i + 1}: ${String(e.message ?? e).split('\n')[0]}`)

@@ -6,11 +6,11 @@ help:
 	@echo "check         verify diagrams, links, versions, names, and bundle freshness"
 	@echo "bundle        regenerate the single-file bundle for each skill"
 	@echo "validate      validate the Claude Code plugin and marketplace manifests"
-	@echo "deps          install the check dependencies (mermaid, jsdom)"
+	@echo "deps          install the check dependency (pele)"
 	@echo "version       print each skill's version"
 
 deps:
-	@command -v bun >/dev/null 2>&1 && bun add --dev mermaid jsdom || npm install --no-save mermaid jsdom
+	@command -v bun >/dev/null 2>&1 && bun add --dev pele || npm install --no-save pele
 
 check: bundle-check
 	@test -n "$(RUNNER)" || { echo "need bun or node on PATH"; exit 1; }
