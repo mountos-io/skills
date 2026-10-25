@@ -11,6 +11,11 @@ The skill loads current documentation from https://mountos.io on every use, so i
 mountOS releases without a release here. A release here means the operational guidance
 changed.
 
+## 1.3.1
+
+- Stage 6 says that the Linux client install also installs `pfkit` with its own version, that
+  the installer does not start it, how to start it, and how to skip it with `--no-pfkit`.
+
 ## 1.3.0
 
 - The runbook has a new host network tuning section for block storage nodes: the sysctl

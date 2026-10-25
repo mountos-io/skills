@@ -2,6 +2,11 @@
 
 Versioning is semantic, applied to the skill itself, not to mountOS.
 
+## 1.1.1
+
+- New pitfall: a running `pfkit` changes the result of lookup-heavy workloads, so state
+  whether it ran and compare only like with like.
+
 ## 1.1.0
 
 - New symptom section: low throughput from a client far from the region. It covers how to

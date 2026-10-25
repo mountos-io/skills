@@ -1,7 +1,7 @@
 {
   "name": "performance",
   "displayName": "mountOS performance",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Measure mountOS performance against a baseline on a mounted volume: a concurrent mixed workload with latency percentiles and correctness counters, metadata rates with mdtest, and small-file workload timing. Also diagnoses low throughput from a client far from the region: round-trip time, block storage host network tuning, and client buffer limits on Linux and macOS.",
   "author": {
     "name": "mountOS",

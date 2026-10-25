@@ -1,4 +1,4 @@
-# mountOS performance skill (single-file bundle, version 1.1.0)
+# mountOS performance skill (single-file bundle, version 1.1.1)
 
 This file is the entire skill in one document: the entry point followed by every
 reference it links to. It exists for agents that cannot follow relative links or read
@@ -206,6 +206,10 @@ Each of these silently invalidates a run:
    another region, is not comparable to one outside it. State where the client sat.
 4. **Cold against warm cache.** The first run after a mount pays for cache fill.
    Compare like with like, or run twice and report both.
+5. **A running `pfkit`.** On Linux, `pfkit` sends the paths that processes are about to open
+   to the mount as prefetch hints. Lookup-heavy workloads then run several times faster, and
+   far faster from a distant client. Run `pgrep pfkit` before each run, and state whether it
+   was running. Compare runs with it on only against runs with it on.
 
 ## Storage locality dominates
 

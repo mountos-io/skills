@@ -1,7 +1,7 @@
 ---
 name: performance
 description: Measure mountOS performance against a baseline, on a mounted volume on Linux. Covers metadata operation rates with mdtest across directory shapes (flat, deep, wide, shared versus unique parent, phase isolation), and small-file workload timing. Use to size a deployment, to compare two configurations, or to track a regression between releases. Also diagnoses low throughput from a client far from the region: round-trip time, block storage host network tuning, and client buffer limits on Linux and macOS.
-version: 1.1.0
+version: 1.1.1
 license: Apache-2.0
 ---
 
@@ -202,6 +202,10 @@ Each of these silently invalidates a run:
    another region, is not comparable to one outside it. State where the client sat.
 4. **Cold against warm cache.** The first run after a mount pays for cache fill.
    Compare like with like, or run twice and report both.
+5. **A running `pfkit`.** On Linux, `pfkit` sends the paths that processes are about to open
+   to the mount as prefetch hints. Lookup-heavy workloads then run several times faster, and
+   far faster from a distant client. Run `pgrep pfkit` before each run, and state whether it
+   was running. Compare runs with it on only against runs with it on.
 
 ## Storage locality dominates
 

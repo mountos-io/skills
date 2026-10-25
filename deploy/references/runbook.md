@@ -172,6 +172,12 @@ curl -fsSL https://mountos.sh/install | bash
 Install one package per invocation. The installer honors only the last `--pkg` flag when
 given several, with no error.
 
+On Linux the client install also installs `pfkit`, a separate package with its own version.
+`--version` and `--major` apply to the client only. The installer does not start `pfkit`.
+Start it as root (`sudo pfkit`) on a host that has kernel BTF to turn on prefetch hints for
+the mounts of that host. Pass `--no-pfkit` to skip it. A failed `pfkit` install is a warning
+and never fails the client install.
+
 Mount from a machine that is **genuinely outside** the deployment network. Discovery hands
 the client the metadata cluster's public address, and most clouds do not route an instance's public
 address back to a machine inside the same virtual network. A client placed inside the
